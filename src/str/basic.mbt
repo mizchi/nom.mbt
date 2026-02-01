@@ -30,20 +30,15 @@ pub fn take(count : Int) -> @nom.Parser[StringView, StringView] {
 ///| Take while predicate holds on chars
 pub fn take_while(pred : (Char) -> Bool) -> @nom.Parser[StringView, StringView] {
   fn(input) {
-    let mut count = 0
+    let mut consumed = 0
     for ch in input {
       if pred(ch) {
-        count += 1
+        consumed += ch.utf16_len()
       } else {
         break
       }
     }
-    let end_offset =
-      match input.offset_of_nth_char(count) {
-        Some(offset) => offset
-        None => input.length()
-      }
-    Ok((input.view(end_offset=end_offset), input.view(start_offset=end_offset)))
+    Ok((input.view(end_offset=consumed), input.view(start_offset=consumed)))
   }
 }
 
