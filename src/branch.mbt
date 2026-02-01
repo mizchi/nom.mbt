@@ -21,3 +21,27 @@ pub fn[I, O] alt(parsers : Array[Parser[I, O]]) -> Parser[I, O] {
     }
   }
 }
+
+///| Try two parsers in order, returning the first success
+pub fn[I, O] alt2(first : Parser[I, O], second : Parser[I, O]) -> Parser[I, O] {
+  fn(input) {
+    match first(input) {
+      Ok(result) => Ok(result)
+      Err(Err::Failure(err)) => Err(Err::Failure(err))
+      Err(Err::Error(err)) =>
+        match second(input) {
+          Ok(result) => Ok(result)
+          Err(Err::Failure(err2)) => Err(Err::Failure(err2))
+          Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed))
+          Err(Err::Error(_)) => Err(Err::Error(err))
+        }
+      Err(Err::Incomplete(needed)) =>
+        match second(input) {
+          Ok(result) => Ok(result)
+          Err(Err::Failure(err2)) => Err(Err::Failure(err2))
+          Err(Err::Incomplete(needed2)) => Err(Err::Incomplete(needed2))
+          Err(Err::Error(_)) => Err(Err::Incomplete(needed))
+        }
+    }
+  }
+}

@@ -416,11 +416,21 @@ fn parens_unicode(
 }
 
 fn factor_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
-  let parser = @nom.alt([
-    parens_unicode(expr_unicode),
-    int_unicode,
-  ])
-  token_unicode(parser)(input)
+  fn parse(input) {
+    match parens_unicode(expr_unicode)(input) {
+      Ok(result) => Ok(result)
+      Err(@nom.Err::Failure(err)) => Err(@nom.Err::Failure(err))
+      Err(@nom.Err::Error(_)) => int_unicode(input)
+      Err(@nom.Err::Incomplete(needed)) =>
+        match int_unicode(input) {
+          Ok(result) => Ok(result)
+          Err(@nom.Err::Failure(err)) => Err(@nom.Err::Failure(err))
+          Err(@nom.Err::Error(_)) => Err(@nom.Err::Incomplete(needed))
+          Err(@nom.Err::Incomplete(needed2)) => Err(@nom.Err::Incomplete(needed2))
+        }
+    }
+  }
+  token_unicode(parse)(input)
 }
 
 fn term_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
