@@ -1,0 +1,53 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mizchi/nom/str"
+
+import {
+  "mizchi/nom",
+}
+
+// Values
+pub fn char(Char) -> (StringView) -> Result[(Char, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn digit1(StringView) -> Result[(StringView, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn int(StringView) -> Result[(Int, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn none_of(StringView) -> (StringView) -> Result[(Char, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn one_of(StringView) -> (StringView) -> Result[(Char, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn parse_calc(StringView) -> Result[(Int, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn satisfy((Char) -> Bool) -> (StringView) -> Result[(Char, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn space0(StringView) -> Result[(StringView, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn space1(StringView) -> Result[(StringView, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn tag(StringView) -> (StringView) -> Result[(StringView, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn take(Int) -> (StringView) -> Result[(StringView, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn take_while((Char) -> Bool) -> (StringView) -> Result[(StringView, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+pub fn take_while1((Char) -> Bool) -> (StringView) -> Result[(StringView, StringView), @nom.Err[@nom.ParseError[StringView]]]
+
+// Errors
+
+// Types and methods
+pub struct Stream {
+  buf : String
+}
+pub fn Stream::feed(Self, StringView) -> Self
+pub fn Stream::from_string(String) -> Self
+pub fn Stream::is_empty(Self) -> Bool
+pub fn Stream::new() -> Self
+pub fn[O] Stream::parse(Self, (StringView) -> Result[(O, StringView), @nom.Err[@nom.ParseError[StringView]]]) -> (Result[(O, StringView), @nom.Err[@nom.ParseError[StringView]]], Self)
+pub fn Stream::view(Self) -> StringView
+pub impl Eq for Stream
+pub impl Show for Stream
+
+// Type aliases
+
+// Traits
+

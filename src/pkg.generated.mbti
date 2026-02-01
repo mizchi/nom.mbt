@@ -1,0 +1,108 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mizchi/nom"
+
+// Values
+pub fn[I : InputLen, O] all_consuming((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
+
+pub fn[I, O] alt(Array[(I) -> Result[(O, I), Err[ParseError[I]]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
+
+pub fn[I, O] complete((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
+
+pub fn[I, O] context(String, (I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
+
+pub fn[I, O] cut((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
+
+pub fn[I, O1, O2, O3] delimited((I) -> Result[(O1, I), Err[ParseError[I]]], (I) -> Result[(O2, I), Err[ParseError[I]]], (I) -> Result[(O3, I), Err[ParseError[I]]]) -> (I) -> Result[(O2, I), Err[ParseError[I]]]
+
+pub fn[I : InputLen] eof(I) -> Result[(Unit, I), Err[ParseError[I]]]
+
+pub fn[I : InputLen, O] many0((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]
+
+pub fn[I : InputLen, O] many1((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]
+
+pub fn[I, O, O2] map((I) -> Result[(O, I), Err[ParseError[I]]], (O) -> O2) -> (I) -> Result[(O2, I), Err[ParseError[I]]]
+
+pub fn[I, O] map_err((I) -> Result[(O, I), Err[ParseError[I]]], (ParseError[I]) -> ParseError[I]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
+
+pub fn[I, O, O2, E2] map_res((I) -> Result[(O, I), Err[ParseError[I]]], (O) -> Result[O2, E2], ErrorKind) -> (I) -> Result[(O2, I), Err[ParseError[I]]]
+
+pub fn[I, O] opt((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O?, I), Err[ParseError[I]]]
+
+pub fn[I, O1, O2] pair((I) -> Result[(O1, I), Err[ParseError[I]]], (I) -> Result[(O2, I), Err[ParseError[I]]]) -> (I) -> Result[((O1, O2), I), Err[ParseError[I]]]
+
+pub fn[I, O1, O2] preceded((I) -> Result[(O1, I), Err[ParseError[I]]], (I) -> Result[(O2, I), Err[ParseError[I]]]) -> (I) -> Result[(O2, I), Err[ParseError[I]]]
+
+pub fn[I : InputLen, O, S] separated_list0((I) -> Result[(S, I), Err[ParseError[I]]], (I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]
+
+pub fn[I : InputLen, O, S] separated_list1((I) -> Result[(S, I), Err[ParseError[I]]], (I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]
+
+pub fn[I, O1, O2] terminated((I) -> Result[(O1, I), Err[ParseError[I]]], (I) -> Result[(O2, I), Err[ParseError[I]]]) -> (I) -> Result[(O1, I), Err[ParseError[I]]]
+
+pub fn[I] to_error(I, ErrorKind) -> Err[ParseError[I]]
+
+pub fn[I] to_failure(I, ErrorKind) -> Err[ParseError[I]]
+
+pub fn[E] to_incomplete(Needed) -> Err[E]
+
+pub fn[I, O, O2] value(O2, (I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O2, I), Err[ParseError[I]]]
+
+// Errors
+
+// Types and methods
+pub(all) enum Err[E] {
+  Error(E)
+  Failure(E)
+  Incomplete(Needed)
+}
+pub impl[E : Eq] Eq for Err[E]
+pub impl[E : Show] Show for Err[E]
+pub impl[E : ToJson] ToJson for Err[E]
+
+pub(all) enum ErrorKind {
+  Tag
+  Take
+  TakeWhile
+  TakeWhile1
+  Char
+  Digit
+  Eof
+  MapRes
+  Alt
+  Many0
+  Custom(String)
+}
+pub impl Eq for ErrorKind
+pub impl Show for ErrorKind
+pub impl ToJson for ErrorKind
+
+pub(all) enum Needed {
+  Unknown
+  Size(Int)
+}
+pub impl Eq for Needed
+pub impl Show for Needed
+pub impl ToJson for Needed
+
+pub struct ParseError[I] {
+  input : I
+  kind : ErrorKind
+  context : Array[String]
+}
+pub fn[I] ParseError::new(I, ErrorKind) -> Self[I]
+pub fn[I] ParseError::with_context(Self[I], String) -> Self[I]
+pub impl[I : Eq] Eq for ParseError[I]
+pub impl[I : Show] Show for ParseError[I]
+pub impl[I : ToJson] ToJson for ParseError[I]
+
+// Type aliases
+pub type IResult[I, O] = Result[(O, I), Err[ParseError[I]]]
+
+pub type Parser[I, O] = (I) -> Result[(O, I), Err[ParseError[I]]]
+
+// Traits
+pub trait InputLen {
+  length(Self) -> Int
+}
+pub impl InputLen for BytesView
+pub impl InputLen for StringView
+

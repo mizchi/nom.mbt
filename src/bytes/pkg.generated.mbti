@@ -1,0 +1,47 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mizchi/nom/bytes"
+
+import {
+  "mizchi/nom",
+}
+
+// Values
+pub fn digit1(BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn none_of(BytesView) -> (BytesView) -> Result[(Byte, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn one_of(BytesView) -> (BytesView) -> Result[(Byte, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn satisfy((Byte) -> Bool) -> (BytesView) -> Result[(Byte, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn space0(BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn space1(BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn tag(BytesView) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn take(Int) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn take_while((Byte) -> Bool) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn take_while1((Byte) -> Bool) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+// Errors
+
+// Types and methods
+pub struct Stream {
+  buf : Bytes
+}
+pub fn Stream::feed(Self, BytesView) -> Self
+pub fn Stream::from_bytes(Bytes) -> Self
+pub fn Stream::is_empty(Self) -> Bool
+pub fn Stream::new() -> Self
+pub fn[O] Stream::parse(Self, (BytesView) -> Result[(O, BytesView), @nom.Err[@nom.ParseError[BytesView]]]) -> (Result[(O, BytesView), @nom.Err[@nom.ParseError[BytesView]]], Self)
+pub fn Stream::view(Self) -> BytesView
+pub impl Eq for Stream
+pub impl Show for Stream
+
+// Type aliases
+
+// Traits
+
