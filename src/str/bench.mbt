@@ -342,20 +342,118 @@ fn ident_unicode(input : StringView) -> @nom.IResult[StringView, StringView] {
   take_while1(is_ident_char_unicode)(input)
 }
 
+fn expect_char(input : StringView, expected : Char) -> @nom.IResult[StringView, Char] {
+  match input.get_char(0) {
+    Some(ch) =>
+      if ch == expected {
+        let offset = ch.utf16_len()
+        Ok((ch, input.view(start_offset=offset)))
+      } else {
+        Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Char)))
+      }
+    None => Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+  }
+}
+
+fn ident_unicode_fast(input : StringView) -> @nom.IResult[StringView, StringView] {
+  let mut consumed = 0
+  let mut has = false
+  for ch in input {
+    if is_ident_char_unicode(ch) {
+      consumed += ch.utf16_len()
+      has = true
+    } else {
+      break
+    }
+  }
+  if has {
+    Ok((input.view(end_offset=consumed), input.view(start_offset=consumed)))
+  } else {
+    if input.length() == 0 {
+      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+    } else {
+      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)))
+    }
+  }
+}
+
+fn number_fullwidth_fast(input : StringView) -> @nom.IResult[StringView, Int] {
+  let mut consumed = 0
+  let mut val = 0
+  let mut has = false
+  for ch in input {
+    if is_fullwidth_digit(ch) {
+      val = val * 10 + (ch.to_int() - 0xff10)
+      consumed += ch.utf16_len()
+      has = true
+    } else {
+      break
+    }
+  }
+  if has {
+    Ok((val, input.view(start_offset=consumed)))
+  } else {
+    if input.length() == 0 {
+      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+    } else {
+      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Digit)))
+    }
+  }
+}
+
+fn assignment_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
+  match space0_unicode(input) {
+    Ok((_, rest1)) =>
+      match ident_unicode_fast(rest1) {
+        Ok((_, rest2)) =>
+          match space0_unicode(rest2) {
+            Ok((_, rest3)) =>
+              match expect_char(rest3, eq_char) {
+                Ok((_, rest4)) =>
+                  match space0_unicode(rest4) {
+                    Ok((_, rest5)) =>
+                      match number_fullwidth_fast(rest5) {
+                        Ok((value, rest6)) => Ok((value, rest6))
+                        Err(err) => Err(err)
+                      }
+                    Err(err) => Err(err)
+                  }
+                Err(err) => Err(err)
+              }
+            Err(err) => Err(err)
+          }
+        Err(err) => Err(err)
+      }
+    Err(err) => Err(err)
+  }
+}
+
 fn assignment_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
-  @nom.preceded(
-    token_unicode(ident_unicode),
-    @nom.preceded(token_unicode(char(eq_char)), number_fullwidth),
-  )(input)
+  assignment_unicode_fast(input)
+}
+
+fn sep_assignment_unicode_fast(
+  input : StringView,
+) -> @nom.IResult[StringView, Int] {
+  let orig = input
+  match space0_unicode(input) {
+    Ok((_, rest1)) =>
+      match expect_char(rest1, sep_char) {
+        Ok((_, rest2)) => assignment_unicode_fast(rest2)
+        Err(@nom.Err::Incomplete(needed)) => Err(@nom.Err::Incomplete(needed))
+        Err(@nom.Err::Failure(err)) => Err(@nom.Err::Failure(err))
+        Err(@nom.Err::Error(_)) =>
+          Err(@nom.Err::Error(@nom.ParseError::new(orig, @nom.ErrorKind::Char)))
+      }
+    Err(err) => Err(err)
+  }
 }
 
 fn assignments_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   match assignment_unicode(input) {
     Ok((value, rest)) =>
       @nom.fold_many0(
-        @nom.complete(
-          @nom.preceded(token_unicode(char(sep_char)), assignment_unicode),
-        ),
+        @nom.complete(sep_assignment_unicode_fast),
         () => value,
         (acc, item) => acc + item,
       )(rest)
