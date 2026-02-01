@@ -145,11 +145,7 @@ pub fn satisfy(pred : (Char) -> Bool) -> @nom.Parser[StringView, Char] {
     match input.get_char(0) {
       Some(ch) =>
         if pred(ch) {
-          let offset =
-            match input.offset_of_nth_char(1) {
-              Some(v) => v
-              None => input.length()
-            }
+          let offset = ch.utf16_len()
           Ok((ch, input.view(start_offset=offset)))
         } else {
           Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Char)))
