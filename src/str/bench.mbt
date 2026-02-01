@@ -563,6 +563,117 @@ fn expr_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   }
 }
 
+fn factor_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
+  match space0_unicode(input) {
+    Ok((_, rest1)) =>
+      match expect_char(rest1, '(') {
+        Ok((_, rest2)) =>
+          match expr_unicode_fast(rest2) {
+            Ok((value, rest3)) =>
+              match space0_unicode(rest3) {
+                Ok((_, rest4)) =>
+                  match expect_char(rest4, ')') {
+                    Ok((_, rest5)) => Ok((value, rest5))
+                    Err(err) => Err(err)
+                  }
+                Err(err) => Err(err)
+              }
+            Err(err) => Err(err)
+          }
+        Err(@nom.Err::Failure(err)) => Err(@nom.Err::Failure(err))
+        Err(@nom.Err::Incomplete(needed)) =>
+          match int_unicode(rest1) {
+            Ok((value, rest2)) =>
+              match space0_unicode(rest2) {
+                Ok((_, rest3)) => Ok((value, rest3))
+                Err(err) => Err(err)
+              }
+            Err(@nom.Err::Failure(err2)) => Err(@nom.Err::Failure(err2))
+            Err(@nom.Err::Error(_)) => Err(@nom.Err::Incomplete(needed))
+            Err(@nom.Err::Incomplete(needed2)) => Err(@nom.Err::Incomplete(needed2))
+          }
+        Err(@nom.Err::Error(_)) =>
+          match int_unicode(rest1) {
+            Ok((value, rest2)) =>
+              match space0_unicode(rest2) {
+                Ok((_, rest3)) => Ok((value, rest3))
+                Err(err) => Err(err)
+              }
+            Err(err2) => Err(err2)
+          }
+      }
+    Err(err) => Err(err)
+  }
+}
+
+fn term_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
+  match factor_unicode_fast(input) {
+    Ok((value, rest)) => {
+      let mut acc = value
+      let mut rest2 = rest
+      while true {
+        match space0_unicode(rest2) {
+          Ok((_, rest3)) =>
+            match rest3.get_char(0) {
+              Some(op) =>
+                if op == '*' || op == '/' {
+                  let op_char = op
+                  let after_op = rest3.view(start_offset=op.utf16_len())
+                  match factor_unicode_fast(after_op) {
+                    Ok((rhs, rest4)) => {
+                      if op_char == '*' { acc = acc * rhs } else { acc = acc / rhs }
+                      rest2 = rest4
+                    }
+                    Err(err) => return Err(err)
+                  }
+                } else {
+                  return Ok((acc, rest2))
+                }
+              None => return Ok((acc, rest2))
+            }
+          Err(err) => return Err(err)
+        }
+      }
+      Ok((acc, rest2))
+    }
+    Err(err) => Err(err)
+  }
+}
+
+fn expr_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
+  match term_unicode_fast(input) {
+    Ok((value, rest)) => {
+      let mut acc = value
+      let mut rest2 = rest
+      while true {
+        match space0_unicode(rest2) {
+          Ok((_, rest3)) =>
+            match rest3.get_char(0) {
+              Some(op) =>
+                if op == '+' || op == '-' {
+                  let op_char = op
+                  let after_op = rest3.view(start_offset=op.utf16_len())
+                  match term_unicode_fast(after_op) {
+                    Ok((rhs, rest4)) => {
+                      if op_char == '+' { acc = acc + rhs } else { acc = acc - rhs }
+                      rest2 = rest4
+                    }
+                    Err(err) => return Err(err)
+                  }
+                } else {
+                  return Ok((acc, rest2))
+                }
+              None => return Ok((acc, rest2))
+            }
+          Err(err) => return Err(err)
+        }
+      }
+      Ok((acc, rest2))
+    }
+    Err(err) => Err(err)
+  }
+}
+
 fn parse_calc_hand_unicode(input : StringView) -> Int? {
   let len = input.char_length()
   match parse_expr_unicode(input, 0, len) {
@@ -885,14 +996,14 @@ test "bench: calculator hand long" (b : @bench.T) {
 
 ///|
 test "bench: calculator unicode short" (b : @bench.T) {
-  let parser = @nom.all_consuming(expr_unicode)
+  let parser = @nom.all_consuming(expr_unicode_fast)
   let input = expr_unicode_short[:]
   b.bench(fn() { b.keep(parser(input)) })
 }
 
 ///|
 test "bench: calculator unicode long" (b : @bench.T) {
-  let parser = @nom.all_consuming(expr_unicode)
+  let parser = @nom.all_consuming(expr_unicode_fast)
   let input = expr_unicode_long[:]
   b.bench(fn() { b.keep(parser(input)) })
 }
