@@ -10,3 +10,7 @@ criterion = "0.5"
 [[bench]]
 name = "calculator"
 harness = false
+
+[[bench]]
+name = "assignments_unicode"
+harness = false
