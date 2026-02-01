@@ -1,0 +1,12 @@
+[package]
+name = "nom-bench"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nom = "7"
+criterion = "0.5"
+
+[[bench]]
+name = "calculator"
+harness = false

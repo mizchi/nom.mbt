@@ -1,0 +1,15 @@
+{
+  "name": "mizchi/nom",
+  "version": "0.1.0",
+  "source": "src",
+  "preferred-target": "js",
+  "readme": "README.mbt.md",
+  "repository": "",
+  "license": "Apache-2.0",
+  "keywords": [
+    "parser",
+    "combinator",
+    "nom"
+  ],
+  "description": "Nom-like parser combinators for MoonBit."
+}
