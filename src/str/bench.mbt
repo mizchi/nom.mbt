@@ -109,8 +109,25 @@ let assign_pairs_long : Array[(String, Int)] = [
   (ident(20), 7890),
 ]
 
+let assign_pairs_single : Array[(String, Int)] = [
+  (ident(1), 123),
+]
+
 let assign_unicode_short : String = make_assignments(assign_pairs_short)
 let assign_unicode_long : String = make_assignments(assign_pairs_long)
+let assign_unicode_single : String = make_assignments(assign_pairs_single)
+
+let unicode_ws_sample : String = {
+  let sb = StringBuilder::new()
+  for _ in 0..<64 {
+    sb.write_string(ws_ideo)
+    sb.write_string(ws_em)
+  }
+  sb.to_string()
+}
+
+let unicode_ident_sample : String = ident(12345)
+let unicode_number_sample : String = fullwidth_number(123456789)
 
 fn skip_ws(input : StringView, idx : Int, len : Int) -> Int {
   let mut i = idx
@@ -795,4 +812,56 @@ test "bench: assignments unicode hand short" (b : @bench.T) {
 test "bench: assignments unicode hand long" (b : @bench.T) {
   let input = assign_unicode_long[:]
   b.bench(fn() { b.keep(parse_assignments_hand_unicode(input)) })
+}
+
+///|
+test "bench: unicode ws scan" (b : @bench.T) {
+  let input = unicode_ws_sample[:]
+  b.bench(fn() { b.keep(space0_unicode(input)) })
+}
+
+///|
+test "bench: unicode ws scan hand" (b : @bench.T) {
+  let input = unicode_ws_sample[:]
+  let len = input.char_length()
+  b.bench(fn() { b.keep(skip_ws_unicode(input, 0, len)) })
+}
+
+///|
+test "bench: unicode ident" (b : @bench.T) {
+  let input = unicode_ident_sample[:]
+  b.bench(fn() { b.keep(ident_unicode(input)) })
+}
+
+///|
+test "bench: unicode ident hand" (b : @bench.T) {
+  let input = unicode_ident_sample[:]
+  let len = input.char_length()
+  b.bench(fn() { b.keep(parse_ident_unicode_hand(input, 0, len)) })
+}
+
+///|
+test "bench: unicode number" (b : @bench.T) {
+  let input = unicode_number_sample[:]
+  b.bench(fn() { b.keep(number_fullwidth(input)) })
+}
+
+///|
+test "bench: unicode number hand" (b : @bench.T) {
+  let input = unicode_number_sample[:]
+  let len = input.char_length()
+  b.bench(fn() { b.keep(parse_fullwidth_number_hand(input, 0, len)) })
+}
+
+///|
+test "bench: unicode assignment" (b : @bench.T) {
+  let parser = @nom.all_consuming(assignment_unicode)
+  let input = assign_unicode_single[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
+test "bench: unicode assignment hand" (b : @bench.T) {
+  let input = assign_unicode_single[:]
+  b.bench(fn() { b.keep(parse_assignment_hand_unicode(input, 0, input.char_length())) })
 }
