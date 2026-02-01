@@ -366,7 +366,20 @@ fn assignments_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
 fn[O] token_unicode(
   parser : @nom.Parser[StringView, O],
 ) -> @nom.Parser[StringView, O] {
-  @nom.delimited(space0_unicode, parser, space0_unicode)
+  fn(input) {
+    match space0_unicode(input) {
+      Ok((_, rest1)) =>
+        match parser(rest1) {
+          Ok((value, rest2)) =>
+            match space0_unicode(rest2) {
+              Ok((_, rest3)) => Ok((value, rest3))
+              Err(err) => Err(err)
+            }
+          Err(err) => Err(err)
+        }
+      Err(err) => Err(err)
+    }
+  }
 }
 
 fn int_unicode(input : StringView) -> @nom.IResult[StringView, Int] {

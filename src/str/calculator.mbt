@@ -1,6 +1,19 @@
 ///| Token parser: skip surrounding whitespace
 fn[O] token(parser : @nom.Parser[StringView, O]) -> @nom.Parser[StringView, O] {
-  @nom.delimited(space0, parser, space0)
+  fn(input) {
+    match space0(input) {
+      Ok((_, rest1)) =>
+        match parser(rest1) {
+          Ok((value, rest2)) =>
+            match space0(rest2) {
+              Ok((_, rest3)) => Ok((value, rest3))
+              Err(err) => Err(err)
+            }
+          Err(err) => Err(err)
+        }
+      Err(err) => Err(err)
+    }
+  }
 }
 
 ///| Parse a parenthesized expression
