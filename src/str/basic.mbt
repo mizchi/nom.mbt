@@ -160,6 +160,22 @@ pub fn char(expected : Char) -> @nom.Parser[StringView, Char] {
   satisfy((ch) => ch == expected)
 }
 
+///| Match one of two chars (fast path)
+fn one_of2(a : Char, b : Char) -> @nom.Parser[StringView, Char] {
+  fn(input) {
+    match input.get_char(0) {
+      Some(ch) =>
+        if ch == a || ch == b {
+          let offset = ch.utf16_len()
+          Ok((ch, input.view(start_offset=offset)))
+        } else {
+          Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Char)))
+        }
+      None => Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+    }
+  }
+}
+
 ///| Match one of the given chars
 pub fn one_of(chars : StringView) -> @nom.Parser[StringView, Char] {
   let (ascii_only, table) = build_ascii_table(chars)

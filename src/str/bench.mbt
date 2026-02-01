@@ -371,7 +371,7 @@ fn[O] token_unicode(
 
 fn int_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   let parser = @nom.map_res(
-    @nom.pair(@nom.opt(one_of("+-"[:] )), digit1_unicode),
+    @nom.pair(@nom.opt(one_of2('+', '-')), digit1_unicode),
     (pair) => {
       let sign = pair.0
       let digits = pair.1
@@ -414,7 +414,7 @@ fn term_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   match factor_unicode(input) {
     Ok((value, rest)) =>
       @nom.fold_many0(
-        @nom.complete(@nom.pair(token_unicode(one_of("*/"[:])), factor_unicode)),
+        @nom.complete(@nom.pair(token_unicode(one_of2('*', '/')), factor_unicode)),
         () => value,
         (acc, item) => {
           let op = item.0
@@ -430,7 +430,7 @@ fn expr_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   match term_unicode(input) {
     Ok((value, rest)) =>
       @nom.fold_many0(
-        @nom.complete(@nom.pair(token_unicode(one_of("+-"[:])), term_unicode)),
+        @nom.complete(@nom.pair(token_unicode(one_of2('+', '-')), term_unicode)),
         () => value,
         (acc, item) => {
           let op = item.0

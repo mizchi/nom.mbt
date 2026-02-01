@@ -14,11 +14,21 @@ fn parens(parser : @nom.Parser[StringView, Int]) -> @nom.Parser[StringView, Int]
 
 ///| Parse a factor: number or parenthesized expression
 fn factor(input : StringView) -> @nom.IResult[StringView, Int] {
-  let parser = @nom.alt([
-    parens(expr),
-    int,
-  ])
-  token(parser)(input)
+  fn parse(input) {
+    match parens(expr)(input) {
+      Ok(result) => Ok(result)
+      Err(@nom.Err::Failure(err)) => Err(@nom.Err::Failure(err))
+      Err(@nom.Err::Error(_)) => int(input)
+      Err(@nom.Err::Incomplete(needed)) =>
+        match int(input) {
+          Ok(result) => Ok(result)
+          Err(@nom.Err::Failure(err)) => Err(@nom.Err::Failure(err))
+          Err(@nom.Err::Error(_)) => Err(@nom.Err::Incomplete(needed))
+          Err(@nom.Err::Incomplete(needed2)) => Err(@nom.Err::Incomplete(needed2))
+        }
+    }
+  }
+  token(parse)(input)
 }
 
 ///| Parse a term with * and /
@@ -26,7 +36,7 @@ fn term(input : StringView) -> @nom.IResult[StringView, Int] {
   match factor(input) {
     Ok((value, rest)) =>
       @nom.fold_many0(
-        @nom.complete(@nom.pair(token(one_of("*/"[:])), factor)),
+        @nom.complete(@nom.pair(token(one_of2('*', '/')), factor)),
         () => value,
         (acc, item) => {
           let op = item.0
@@ -43,7 +53,7 @@ fn expr(input : StringView) -> @nom.IResult[StringView, Int] {
   match term(input) {
     Ok((value, rest)) =>
       @nom.fold_many0(
-        @nom.complete(@nom.pair(token(one_of("+-"[:])), term)),
+        @nom.complete(@nom.pair(token(one_of2('+', '-')), term)),
         () => value,
         (acc, item) => {
           let op = item.0
