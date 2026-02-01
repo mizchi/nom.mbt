@@ -8,17 +8,29 @@ let tag_get : BytesView = b"GET /"[:]
 let tag_q : BytesView = b"?x="[:]
 let tag_suffix : BytesView = b" HTTP/1.1\n"[:]
 
-fn bytes_to_int(bytes : BytesView) -> Int {
+fn parse_number(input : BytesView) -> @nom.IResult[BytesView, Int] {
+  let mut rest = input
   let mut val = 0
   let zero = b'0'.to_int()
-  for b in bytes {
-    val = val * 10 + (b.to_int() - zero)
+  let mut consumed = false
+  while rest is [b, .. tail] {
+    if b is (b'0'..=b'9') {
+      val = val * 10 + (b.to_int() - zero)
+      rest = tail
+      consumed = true
+    } else {
+      break
+    }
   }
-  val
-}
-
-fn parse_number(input : BytesView) -> @nom.IResult[BytesView, Int] {
-  @nom.map(digit1, bytes_to_int)(input)
+  if consumed {
+    Ok((val, rest))
+  } else {
+    if input.length() == 0 {
+      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+    } else {
+      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Digit)))
+    }
+  }
 }
 
 fn request_sum(input : BytesView) -> @nom.IResult[BytesView, Int] {
@@ -31,13 +43,11 @@ fn request_sum(input : BytesView) -> @nom.IResult[BytesView, Int] {
 }
 
 fn parse_requests_nom(input : BytesView) -> @nom.IResult[BytesView, Int] {
-  @nom.map(@nom.many1(request_sum), (values) => {
-    let mut sum = 0
-    for v in values {
-      sum = sum + v
-    }
-    sum
-  })(input)
+  @nom.fold_many1(
+    request_sum,
+    (value) => value,
+    (acc, v) => acc + v,
+  )(input)
 }
 
 fn match_tag(input : BytesView, idx : Int, len : Int, pat : BytesView) -> Int? {

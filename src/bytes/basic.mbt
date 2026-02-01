@@ -80,24 +80,25 @@ pub fn satisfy(pred : (Byte) -> Bool) -> @nom.Parser[BytesView, Byte] {
   }
 }
 
-///| Check if a BytesView contains a byte
-fn contains(bytes : BytesView, target : Byte) -> Bool {
+///| Build byte lookup table for fast membership checks
+fn build_byte_table(bytes : BytesView) -> Array[Bool] {
+  let table : Array[Bool] = Array::make(256, false)
   for b in bytes {
-    if b == target {
-      return true
-    }
+    table.set(b.to_int(), true)
   }
-  false
+  table
 }
 
 ///| Match one of the given bytes
 pub fn one_of(bytes : BytesView) -> @nom.Parser[BytesView, Byte] {
-  satisfy((b) => contains(bytes, b))
+  let table = build_byte_table(bytes)
+  satisfy((b) => table[b.to_int()])
 }
 
 ///| Match none of the given bytes
 pub fn none_of(bytes : BytesView) -> @nom.Parser[BytesView, Byte] {
-  satisfy((b) => !contains(bytes, b))
+  let table = build_byte_table(bytes)
+  satisfy((b) => !table[b.to_int()])
 }
 
 ///| Zero or more ASCII whitespace bytes

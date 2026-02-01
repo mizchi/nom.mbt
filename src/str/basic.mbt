@@ -47,6 +47,84 @@ pub fn take_while(pred : (Char) -> Bool) -> @nom.Parser[StringView, StringView] 
   }
 }
 
+///| Take while ASCII predicate holds (fast path)
+fn take_while_ascii(pred : (Char) -> Bool) -> @nom.Parser[StringView, StringView] {
+  fn(input) {
+    let s = input.data()
+    let start = input.start_offset()
+    let end = start + input.length()
+    let mut index = start
+    while index < end {
+      let cu = s.unsafe_get(index)
+      if cu <= 0x7f {
+        let ch = cu.unsafe_to_char()
+        if pred(ch) {
+          index += 1
+          continue
+        }
+      }
+      break
+    }
+    let consumed = index - start
+    Ok((input.view(end_offset=consumed), input.view(start_offset=consumed)))
+  }
+}
+
+///| Take while ASCII predicate holds (must take at least one)
+fn take_while1_ascii(pred : (Char) -> Bool) -> @nom.Parser[StringView, StringView] {
+  fn(input) {
+    match take_while_ascii(pred)(input) {
+      Ok((matched, rest)) =>
+        if matched.length() == 0 {
+          if input.length() == 0 {
+            Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+          } else {
+            Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)))
+          }
+        } else {
+          Ok((matched, rest))
+        }
+      Err(err) => Err(err)
+    }
+  }
+}
+
+///| Build ASCII lookup table for fast membership checks
+fn build_ascii_table(chars : StringView) -> (Bool, Array[Bool]) {
+  let table : Array[Bool] = Array::make(128, false)
+  for ch in chars {
+    if ch.is_ascii() {
+      table.set(ch.to_int(), true)
+    } else {
+      return (false, table)
+    }
+  }
+  (true, table)
+}
+
+///| Fast-path parser for ASCII one_of
+fn one_of_ascii_table(table : Array[Bool]) -> @nom.Parser[StringView, Char] {
+  fn(input) {
+    if input.length() == 0 {
+      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+    } else {
+      let s = input.data()
+      let idx = input.start_offset()
+      let cu = s.unsafe_get(idx)
+      if cu <= 0x7f {
+        let ch = cu.unsafe_to_char()
+        if table[ch.to_int()] {
+          Ok((ch, input.view(start_offset=1)))
+        } else {
+          Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Char)))
+        }
+      } else {
+        Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Char)))
+      }
+    }
+  }
+}
+
 ///| Take while predicate holds (must take at least one)
 pub fn take_while1(pred : (Char) -> Bool) -> @nom.Parser[StringView, StringView] {
   fn(input) {
@@ -93,7 +171,12 @@ pub fn char(expected : Char) -> @nom.Parser[StringView, Char] {
 
 ///| Match one of the given chars
 pub fn one_of(chars : StringView) -> @nom.Parser[StringView, Char] {
-  satisfy((ch) => chars.contains_char(ch))
+  let (ascii_only, table) = build_ascii_table(chars)
+  if ascii_only {
+    one_of_ascii_table(table)
+  } else {
+    satisfy((ch) => chars.contains_char(ch))
+  }
 }
 
 ///| Match none of the given chars
@@ -103,15 +186,15 @@ pub fn none_of(chars : StringView) -> @nom.Parser[StringView, Char] {
 
 ///| Zero or more ASCII whitespace
 pub fn space0(input : StringView) -> @nom.IResult[StringView, StringView] {
-  take_while((ch) => ch.is_ascii_whitespace())(input)
+  take_while_ascii((ch) => ch.is_ascii_whitespace())(input)
 }
 
 ///| One or more ASCII whitespace
 pub fn space1(input : StringView) -> @nom.IResult[StringView, StringView] {
-  take_while1((ch) => ch.is_ascii_whitespace())(input)
+  take_while1_ascii((ch) => ch.is_ascii_whitespace())(input)
 }
 
 ///| One or more ASCII digits
 pub fn digit1(input : StringView) -> @nom.IResult[StringView, StringView] {
-  take_while1((ch) => ch.is_ascii_digit())(input)
+  take_while1_ascii((ch) => ch.is_ascii_digit())(input)
 }

@@ -25,24 +25,15 @@ fn factor(input : StringView) -> @nom.IResult[StringView, Int] {
 fn term(input : StringView) -> @nom.IResult[StringView, Int] {
   match factor(input) {
     Ok((value, rest)) =>
-      match @nom.many0(
+      @nom.fold_many0(
         @nom.complete(@nom.pair(token(one_of("*/"[:])), factor)),
-      )(rest) {
-        Ok((items, rest2)) => {
-          let mut acc = value
-          for _, item in items {
-            let op = item.0
-            let rhs = item.1
-            if op == '*' {
-              acc = acc * rhs
-            } else {
-              acc = acc / rhs
-            }
-          }
-          Ok((acc, rest2))
-        }
-        Err(err) => Err(err)
-      }
+        () => value,
+        (acc, item) => {
+          let op = item.0
+          let rhs = item.1
+          if op == '*' { acc * rhs } else { acc / rhs }
+        },
+      )(rest)
     Err(err) => Err(err)
   }
 }
@@ -51,24 +42,15 @@ fn term(input : StringView) -> @nom.IResult[StringView, Int] {
 fn expr(input : StringView) -> @nom.IResult[StringView, Int] {
   match term(input) {
     Ok((value, rest)) =>
-      match @nom.many0(
+      @nom.fold_many0(
         @nom.complete(@nom.pair(token(one_of("+-"[:])), term)),
-      )(rest) {
-        Ok((items, rest2)) => {
-          let mut acc = value
-          for _, item in items {
-            let op = item.0
-            let rhs = item.1
-            if op == '+' {
-              acc = acc + rhs
-            } else {
-              acc = acc - rhs
-            }
-          }
-          Ok((acc, rest2))
-        }
-        Err(err) => Err(err)
-      }
+        () => value,
+        (acc, item) => {
+          let op = item.0
+          let rhs = item.1
+          if op == '+' { acc + rhs } else { acc - rhs }
+        },
+      )(rest)
     Err(err) => Err(err)
   }
 }

@@ -16,6 +16,10 @@ pub fn[I, O1, O2, O3] delimited((I) -> Result[(O1, I), Err[ParseError[I]]], (I) 
 
 pub fn[I : InputLen] eof(I) -> Result[(Unit, I), Err[ParseError[I]]]
 
+pub fn[I : InputLen, O, R] fold_many0((I) -> Result[(O, I), Err[ParseError[I]]], () -> R, (R, O) -> R) -> (I) -> Result[(R, I), Err[ParseError[I]]]
+
+pub fn[I : InputLen, O, R] fold_many1((I) -> Result[(O, I), Err[ParseError[I]]], (O) -> R, (R, O) -> R) -> (I) -> Result[(R, I), Err[ParseError[I]]]
+
 pub fn[I : InputLen, O] many0((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]
 
 pub fn[I : InputLen, O] many1((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]

@@ -21,6 +21,63 @@ pub fn[I : InputLen, O] many0(parser : Parser[I, O]) -> Parser[I, Array[O]] {
   }
 }
 
+///| Parse zero or more, folding into an accumulator (no allocations)
+pub fn[I : InputLen, O, R] fold_many0(
+  parser : Parser[I, O],
+  init : () -> R,
+  fold : (R, O) -> R,
+) -> Parser[I, R] {
+  fn(input) {
+    let acc = init()
+    fn rec(rest : I, acc : R) -> IResult[I, R] {
+      match parser(rest) {
+        Ok((value, next)) => {
+          if next.length() == rest.length() {
+            Err(Err::Failure(ParseError::new(rest, ErrorKind::Many0)))
+          } else {
+            rec(next, fold(acc, value))
+          }
+        }
+        Err(Err::Error(_)) => Ok((acc, rest))
+        Err(Err::Failure(err)) => Err(Err::Failure(err))
+        Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed))
+      }
+    }
+    rec(input, acc)
+  }
+}
+
+///| Parse one or more, folding into an accumulator (no allocations)
+pub fn[I : InputLen, O, R] fold_many1(
+  parser : Parser[I, O],
+  init : (O) -> R,
+  fold : (R, O) -> R,
+) -> Parser[I, R] {
+  fn(input) {
+    match parser(input) {
+      Ok((value, rest)) => {
+        let acc = init(value)
+        fn rec(rest : I, acc : R) -> IResult[I, R] {
+          match parser(rest) {
+            Ok((value, next)) => {
+              if next.length() == rest.length() {
+                Err(Err::Failure(ParseError::new(rest, ErrorKind::Many0)))
+              } else {
+                rec(next, fold(acc, value))
+              }
+            }
+            Err(Err::Error(_)) => Ok((acc, rest))
+            Err(Err::Failure(err)) => Err(Err::Failure(err))
+            Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed))
+          }
+        }
+        rec(rest, acc)
+      }
+      Err(err) => Err(err)
+    }
+  }
+}
+
 ///| Parse one or more, collecting results
 pub fn[I : InputLen, O] many1(parser : Parser[I, O]) -> Parser[I, Array[O]] {
   fn(input) {
