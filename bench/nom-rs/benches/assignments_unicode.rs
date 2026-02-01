@@ -11,7 +11,7 @@ const EQ: char = '\u{FF1D}';
 const SEP: char = '\u{FF1B}';
 const IDEO: char = '\u{3000}';
 const EM: char = '\u{2003}';
-const IDENT_BASE: &str = "\u{53D8}\u{91CF}";
+const IDENT_BASE: &str = "\u{5909}\u{6570}";
 
 fn unicode_space0(input: &str) -> IResult<&str, &str> {
   recognize(many0(satisfy(|ch| ch.is_whitespace())))(input)
