@@ -342,7 +342,10 @@ fn ident_unicode(input : StringView) -> @nom.IResult[StringView, StringView] {
   take_while1(is_ident_char_unicode)(input)
 }
 
-fn expect_char(input : StringView, expected : Char) -> @nom.IResult[StringView, Char] {
+fn expect_char_unicode(
+  input : StringView,
+  expected : Char,
+) -> @nom.IResult[StringView, Char] {
   match input.get_char(0) {
     Some(ch) =>
       if ch == expected {
@@ -408,7 +411,7 @@ fn assignment_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] 
         Ok((_, rest2)) =>
           match space0_unicode(rest2) {
             Ok((_, rest3)) =>
-              match expect_char(rest3, eq_char) {
+              match expect_char_unicode(rest3, eq_char) {
                 Ok((_, rest4)) =>
                   match space0_unicode(rest4) {
                     Ok((_, rest5)) =>
@@ -438,7 +441,7 @@ fn sep_assignment_unicode_fast(
   let orig = input
   match space0_unicode(input) {
     Ok((_, rest1)) =>
-      match expect_char(rest1, sep_char) {
+      match expect_char_unicode(rest1, sep_char) {
         Ok((_, rest2)) => assignment_unicode_fast(rest2)
         Err(@nom.Err::Incomplete(needed)) => Err(@nom.Err::Incomplete(needed))
         Err(@nom.Err::Failure(err)) => Err(@nom.Err::Failure(err))
@@ -566,13 +569,13 @@ fn expr_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
 fn factor_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   match space0_unicode(input) {
     Ok((_, rest1)) =>
-      match expect_char(rest1, '(') {
+      match expect_char_unicode(rest1, '(') {
         Ok((_, rest2)) =>
           match expr_unicode_fast(rest2) {
             Ok((value, rest3)) =>
               match space0_unicode(rest3) {
                 Ok((_, rest4)) =>
-                  match expect_char(rest4, ')') {
+                  match expect_char_unicode(rest4, ')') {
                     Ok((_, rest5)) => Ok((value, rest5))
                     Err(err) => Err(err)
                   }
