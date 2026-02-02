@@ -5,6 +5,18 @@ let expr_short = "1 + 2 * 3 - 4 / 5 + 6 * (7 + 8) - 9"
 let expr_long =
   "1 + 2 * 3 - 4 / 5 + 6 * (7 + 8) - 9 + 10 * 11 - 12 / 13 + 14 * (15 + 16) - 17 + 18 * 19 - 20 / 21 + 22 * (23 + 24) - 25 + 26 * 27 - 28 / 29 + 30 * (31 + 32) - 33 + 34 * 35 - 36 / 37 + 38 * (39 + 40) - 41 + 42 * 43 - 44 / 45 + 46 * (47 + 48) - 49 + 50"
 
+let expr_complex_short =
+  "((1 + 2) * (3 + 4) - (5 * (6 + 7) - 8) + 9) * (10 + (11 - 12) * (13 + 14 / (15 + 16))) - 17"
+
+let expr_complex_long =
+  "((1 + 2) * (3 + 4) - (5 * (6 + 7) - 8) + 9) * (10 + (11 - 12) * (13 + 14 / (15 + 16))) - 17 + (18 * (19 + 20) - (21 + 22) * (23 - 24 / (25 + 26))) + ((27 + 28) * (29 - 30) + (31 * (32 + 33 - 34))) - (35 + (36 * (37 + 38)) + (39 - 40 / (41 + 42)))"
+
+let expr_deep_short =
+  "((((1 + 2) * (3 + 4)) - (5 - (6 + 7))) + (8 * (9 + (10 - 11))))"
+
+let expr_deep_long =
+  "((((1 + 2) * (3 + 4)) - (5 - (6 + 7))) + (8 * (9 + (10 - 11)))) + (((12 + 13) * (14 - (15 / (16 + 17)))) - (18 + (19 * (20 - 21)))) + (22 - (23 * (24 + (25 - (26 / (27 + 28))))))"
+
 // Unicode whitespace for non-ASCII benchmarks.
 // U+3000 IDEOGRAPHIC SPACE, U+2003 EM SPACE.
 let ws_ideo : String = (0x3000 : Int).unsafe_to_char().to_string()
@@ -31,6 +43,14 @@ fn with_unicode_ws(expr : StringView) -> String {
 let expr_unicode_short : String = with_unicode_ws(expr_short[:])
 
 let expr_unicode_long : String = with_unicode_ws(expr_long[:])
+
+let expr_unicode_complex_short : String = with_unicode_ws(expr_complex_short[:])
+
+let expr_unicode_complex_long : String = with_unicode_ws(expr_complex_long[:])
+
+let expr_unicode_deep_short : String = with_unicode_ws(expr_deep_short[:])
+
+let expr_unicode_deep_long : String = with_unicode_ws(expr_deep_long[:])
 
 fn u(code : Int) -> String {
   (code : Int).unsafe_to_char().to_string()
@@ -986,6 +1006,34 @@ test "bench: calculator long" (b : @bench.T) {
 }
 
 ///|
+test "bench: calculator complex short" (b : @bench.T) {
+  let parser = @nom.all_consuming(parse_calc)
+  let input = expr_complex_short[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
+test "bench: calculator complex long" (b : @bench.T) {
+  let parser = @nom.all_consuming(parse_calc)
+  let input = expr_complex_long[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
+test "bench: calculator deep short" (b : @bench.T) {
+  let parser = @nom.all_consuming(parse_calc)
+  let input = expr_deep_short[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
+test "bench: calculator deep long" (b : @bench.T) {
+  let parser = @nom.all_consuming(parse_calc)
+  let input = expr_deep_long[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
 test "bench: calculator hand short" (b : @bench.T) {
   let input = expr_short[:]
   b.bench(fn() { b.keep(parse_calc_hand(input)) })
@@ -994,6 +1042,30 @@ test "bench: calculator hand short" (b : @bench.T) {
 ///|
 test "bench: calculator hand long" (b : @bench.T) {
   let input = expr_long[:]
+  b.bench(fn() { b.keep(parse_calc_hand(input)) })
+}
+
+///|
+test "bench: calculator hand complex short" (b : @bench.T) {
+  let input = expr_complex_short[:]
+  b.bench(fn() { b.keep(parse_calc_hand(input)) })
+}
+
+///|
+test "bench: calculator hand complex long" (b : @bench.T) {
+  let input = expr_complex_long[:]
+  b.bench(fn() { b.keep(parse_calc_hand(input)) })
+}
+
+///|
+test "bench: calculator hand deep short" (b : @bench.T) {
+  let input = expr_deep_short[:]
+  b.bench(fn() { b.keep(parse_calc_hand(input)) })
+}
+
+///|
+test "bench: calculator hand deep long" (b : @bench.T) {
+  let input = expr_deep_long[:]
   b.bench(fn() { b.keep(parse_calc_hand(input)) })
 }
 
@@ -1012,6 +1084,34 @@ test "bench: calculator unicode long" (b : @bench.T) {
 }
 
 ///|
+test "bench: calculator unicode complex short" (b : @bench.T) {
+  let parser = @nom.all_consuming(expr_unicode_fast)
+  let input = expr_unicode_complex_short[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
+test "bench: calculator unicode complex long" (b : @bench.T) {
+  let parser = @nom.all_consuming(expr_unicode_fast)
+  let input = expr_unicode_complex_long[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
+test "bench: calculator unicode deep short" (b : @bench.T) {
+  let parser = @nom.all_consuming(expr_unicode_fast)
+  let input = expr_unicode_deep_short[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
+test "bench: calculator unicode deep long" (b : @bench.T) {
+  let parser = @nom.all_consuming(expr_unicode_fast)
+  let input = expr_unicode_deep_long[:]
+  b.bench(fn() { b.keep(parser(input)) })
+}
+
+///|
 test "bench: calculator unicode hand short" (b : @bench.T) {
   let input = expr_unicode_short[:]
   b.bench(fn() { b.keep(parse_calc_hand_unicode(input)) })
@@ -1020,6 +1120,30 @@ test "bench: calculator unicode hand short" (b : @bench.T) {
 ///|
 test "bench: calculator unicode hand long" (b : @bench.T) {
   let input = expr_unicode_long[:]
+  b.bench(fn() { b.keep(parse_calc_hand_unicode(input)) })
+}
+
+///|
+test "bench: calculator unicode hand complex short" (b : @bench.T) {
+  let input = expr_unicode_complex_short[:]
+  b.bench(fn() { b.keep(parse_calc_hand_unicode(input)) })
+}
+
+///|
+test "bench: calculator unicode hand complex long" (b : @bench.T) {
+  let input = expr_unicode_complex_long[:]
+  b.bench(fn() { b.keep(parse_calc_hand_unicode(input)) })
+}
+
+///|
+test "bench: calculator unicode hand deep short" (b : @bench.T) {
+  let input = expr_unicode_deep_short[:]
+  b.bench(fn() { b.keep(parse_calc_hand_unicode(input)) })
+}
+
+///|
+test "bench: calculator unicode hand deep long" (b : @bench.T) {
+  let input = expr_unicode_deep_long[:]
   b.bench(fn() { b.keep(parse_calc_hand_unicode(input)) })
 }
 

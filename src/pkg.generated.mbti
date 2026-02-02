@@ -6,6 +6,10 @@ pub fn[I : InputLen, O] all_consuming((I) -> Result[(O, I), Err[ParseError[I]]])
 
 pub fn[I, O] alt(Array[(I) -> Result[(O, I), Err[ParseError[I]]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
 
+pub fn[I, O] alt2((I) -> Result[(O, I), Err[ParseError[I]]], (I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
+
+pub fn bytes_error_offset(BytesView, ParseError[BytesView]) -> Int
+
 pub fn[I, O] complete((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
 
 pub fn[I, O] context(String, (I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(O, I), Err[ParseError[I]]]
@@ -19,6 +23,10 @@ pub fn[I : InputLen] eof(I) -> Result[(Unit, I), Err[ParseError[I]]]
 pub fn[I : InputLen, O, R] fold_many0((I) -> Result[(O, I), Err[ParseError[I]]], () -> R, (R, O) -> R) -> (I) -> Result[(R, I), Err[ParseError[I]]]
 
 pub fn[I : InputLen, O, R] fold_many1((I) -> Result[(O, I), Err[ParseError[I]]], (O) -> R, (R, O) -> R) -> (I) -> Result[(R, I), Err[ParseError[I]]]
+
+pub fn format_error_bytes(BytesView, Err[ParseError[BytesView]]) -> String
+
+pub fn format_error_string(StringView, Err[ParseError[StringView]]) -> String
 
 pub fn[I : InputLen, O] many0((I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]
 
@@ -39,6 +47,10 @@ pub fn[I, O1, O2] preceded((I) -> Result[(O1, I), Err[ParseError[I]]], (I) -> Re
 pub fn[I : InputLen, O, S] separated_list0((I) -> Result[(S, I), Err[ParseError[I]]], (I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]
 
 pub fn[I : InputLen, O, S] separated_list1((I) -> Result[(S, I), Err[ParseError[I]]], (I) -> Result[(O, I), Err[ParseError[I]]]) -> (I) -> Result[(Array[O], I), Err[ParseError[I]]]
+
+pub fn string_error_location(StringView, ParseError[StringView]) -> (Int, Int, Int)
+
+pub fn string_error_offset(StringView, ParseError[StringView]) -> Int
 
 pub fn[I, O1, O2] terminated((I) -> Result[(O1, I), Err[ParseError[I]]], (I) -> Result[(O2, I), Err[ParseError[I]]]) -> (I) -> Result[(O1, I), Err[ParseError[I]]]
 
@@ -67,6 +79,7 @@ pub(all) enum ErrorKind {
   Take
   TakeWhile
   TakeWhile1
+  TakeUntil1
   Char
   Digit
   Eof

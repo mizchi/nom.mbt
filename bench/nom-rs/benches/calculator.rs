@@ -13,6 +13,12 @@ const EXPR_SHORT: &str = "1 + 2 * 3 - 4 / 5 + 6 * (7 + 8) - 9";
 const EXPR_LONG: &str =
   "1 + 2 * 3 - 4 / 5 + 6 * (7 + 8) - 9 + 10 * 11 - 12 / 13 + 14 * (15 + 16) - 17 + 18 * 19 - 20 / 21 + 22 * (23 + 24) - 25 + 26 * 27 - 28 / 29 + 30 * (31 + 32) - 33 + 34 * 35 - 36 / 37 + 38 * (39 + 40) - 41 + 42 * 43 - 44 / 45 + 46 * (47 + 48) - 49 + 50";
 
+const EXPR_COMPLEX_SHORT: &str =
+  "((1 + 2) * (3 + 4) - (5 * (6 + 7) - 8) + 9) * (10 + (11 - 12) * (13 + 14 / (15 + 16))) - 17";
+
+const EXPR_COMPLEX_LONG: &str =
+  "((1 + 2) * (3 + 4) - (5 * (6 + 7) - 8) + 9) * (10 + (11 - 12) * (13 + 14 / (15 + 16))) - 17 + (18 * (19 + 20) - (21 + 22) * (23 - 24 / (25 + 26))) + ((27 + 28) * (29 - 30) + (31 * (32 + 33 - 34))) - (35 + (36 * (37 + 38)) + (39 - 40 / (41 + 42)))";
+
 fn ws<'a, F, O>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O>
 where
   F: Parser<&'a str, O, nom::error::Error<&'a str>>,
@@ -74,5 +80,29 @@ fn bench_calc_long(c: &mut Criterion) {
   });
 }
 
-criterion_group!(benches, bench_calc_short, bench_calc_long);
+fn bench_calc_complex_short(c: &mut Criterion) {
+  c.bench_function("nom calc complex short", |b| {
+    b.iter(|| {
+      let res = parse_all(black_box(EXPR_COMPLEX_SHORT));
+      black_box(res).unwrap();
+    })
+  });
+}
+
+fn bench_calc_complex_long(c: &mut Criterion) {
+  c.bench_function("nom calc complex long", |b| {
+    b.iter(|| {
+      let res = parse_all(black_box(EXPR_COMPLEX_LONG));
+      black_box(res).unwrap();
+    })
+  });
+}
+
+criterion_group!(
+  benches,
+  bench_calc_short,
+  bench_calc_long,
+  bench_calc_complex_short,
+  bench_calc_complex_long
+);
 criterion_main!(benches);

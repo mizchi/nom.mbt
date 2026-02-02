@@ -6,7 +6,13 @@ import {
 }
 
 // Values
+pub fn byte(Byte) -> (BytesView) -> Result[(Byte, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
 pub fn digit1(BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn is_a(BytesView) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn is_not(BytesView) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
 
 pub fn none_of(BytesView) -> (BytesView) -> Result[(Byte, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
 
@@ -21,6 +27,12 @@ pub fn space1(BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseEr
 pub fn tag(BytesView) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
 
 pub fn take(Int) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn take_till((Byte) -> Bool) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn take_until(BytesView) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
+
+pub fn take_until1(BytesView) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
 
 pub fn take_while((Byte) -> Bool) -> (BytesView) -> Result[(BytesView, BytesView), @nom.Err[@nom.ParseError[BytesView]]]
 
