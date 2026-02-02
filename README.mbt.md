@@ -1,7 +1,7 @@
 # nom for MoonBit
 
 Nom-like parser combinators for MoonBit. The core types mirror nom's
-`IResult`/`Parser` style but keep MoonBit syntax and `StringView`/`BytesView`
+`IResult`/`Parser` style while keeping MoonBit syntax and `StringView`/`BytesView`
 inputs.
 
 - `IResult[I, O] = Result[(O, I), Err[ParseError[I]]]`
@@ -61,7 +61,7 @@ let (res2, stream3) = stream2.parse(parser)
 
 Numbers below are local microbenchmarks run on 2026-02-02.
 They are sensitive to machine and compiler versions, so treat them as rough
-guidance, not absolute truth.
+guidance rather than absolute truth.
 
 - MoonBit: `moon bench --target native`
 - Rust: `cargo bench --bench calculator` and `cargo bench --bench assignments_unicode`
