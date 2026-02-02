@@ -56,3 +56,24 @@ let stream2 = stream1b.feed("bc"[:])
 let (res2, stream3) = stream2.parse(parser)
 // res2 is Ok(("abc", "")) and stream3 is now empty
 ```
+
+## Benchmark vs Rust nom (local)
+
+Numbers below are local microbenchmarks run on 2026-02-02.
+They are sensitive to machine and compiler versions, so treat them as rough
+guidance, not absolute truth.
+
+- MoonBit: `moon bench --target native`
+- Rust: `cargo bench --bench calculator` and `cargo bench --bench assignments_unicode`
+
+| case | MoonBit (µs) | Rust/nom (µs) | ratio |
+| --- | ---: | ---: | ---: |
+| calc short | 0.66 | 0.259 | 2.55x |
+| calc long | 3.82 | 1.718 | 2.22x |
+| calc complex short | 1.59 | 0.815 | 1.95x |
+| calc complex long | 4.07 | 2.145 | 1.90x |
+| assignments unicode short | 0.90 | 0.591 | 1.52x |
+| assignments unicode long | 3.71 | 2.617 | 1.42x |
+
+Short, ASCII-heavy inputs tend to amplify constant overhead. As expressions
+get longer or more Unicode-heavy, the gap shrinks.

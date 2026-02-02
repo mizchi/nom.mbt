@@ -83,18 +83,6 @@ fn lex_token(input : StringView, offset : Int, len : Int) -> CalcResult[Token] {
   }
 }
 
-fn infix_bp(tok : Token) -> (Int, Int)? {
-  match tok {
-    Plus => Some((1, 2))
-    Minus => Some((1, 2))
-    Star => Some((2, 3))
-    Slash => Some((2, 3))
-    Percent => Some((2, 3))
-    Caret => Some((3, 3))
-    _ => None
-  }
-}
-
 fn pow_int(base : Int, exp : Int) -> Int {
   if exp <= 0 {
     if exp == 0 { 1 } else { 0 }
@@ -106,6 +94,40 @@ fn pow_int(base : Int, exp : Int) -> Int {
       i = i + 1
     }
     acc
+  }
+}
+
+fn lex_infix(
+  input : StringView,
+  offset : Int,
+  len : Int,
+) -> Result[(Token, Int)?, @nom.Err[@nom.ParseError[StringView]]] {
+  let i = skip_ws_ascii(input, offset, len)
+  if i >= len {
+    Ok(None)
+  } else {
+    match input.get_char(i) {
+      Some(ch) => {
+        let next = i + ch.utf16_len()
+        match ch {
+          '+' => Ok(Some((Plus, next)))
+          '-' => Ok(Some((Minus, next)))
+          '*' => Ok(Some((Star, next)))
+          '/' => Ok(Some((Slash, next)))
+          '%' => Ok(Some((Percent, next)))
+          '^' => Ok(Some((Caret, next)))
+          ')' => Ok(None)
+          '(' => Ok(None)
+          _ =>
+            if ch.is_ascii_digit() {
+              Ok(None)
+            } else {
+              Err(err_at(input, i, @nom.ErrorKind::Char))
+            }
+        }
+      }
+      None => Ok(None)
+    }
   }
 }
 
@@ -167,24 +189,30 @@ fn parse_expr_bp(
       let mut acc = value
       let mut i = next
       while true {
-        match lex_token(input, i, len) {
-          Ok((tok, next_tok)) =>
-            match infix_bp(tok) {
-              Some((l_bp, r_bp)) =>
-                if l_bp < min_bp {
-                  return Ok((acc, i))
-                } else {
-                  match parse_expr_bp(input, next_tok, len, r_bp) {
-                    Ok((rhs, next_rhs)) => {
-                      acc = apply_infix(tok, acc, rhs)
-                      i = next_rhs
-                    }
-                    Err(err) => return Err(err)
-                  }
-                }
-              None => return Ok((acc, i))
+        match lex_infix(input, i, len) {
+          Ok(Some((tok, next_tok))) => {
+            let (l_bp, r_bp) = match tok {
+              Plus => (1, 2)
+              Minus => (1, 2)
+              Star => (2, 3)
+              Slash => (2, 3)
+              Percent => (2, 3)
+              Caret => (3, 3)
+              _ => (0, 0)
             }
-          Err(@nom.Err::Incomplete(_)) => return Ok((acc, i))
+            if l_bp < min_bp {
+              return Ok((acc, i))
+            } else {
+              match parse_expr_bp(input, next_tok, len, r_bp) {
+                Ok((rhs, next_rhs)) => {
+                  acc = apply_infix(tok, acc, rhs)
+                  i = next_rhs
+                }
+                Err(err) => return Err(err)
+              }
+            }
+          }
+          Ok(None) => return Ok((acc, i))
           Err(err) => return Err(err)
         }
       }

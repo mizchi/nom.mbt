@@ -191,14 +191,40 @@ pub fn none_of(chars : StringView) -> @nom.Parser[StringView, Char] {
   satisfy((ch) => !chars.contains_char(ch))
 }
 
+fn scan_ascii_space(input : StringView) -> Int {
+  let s = input.data()
+  let start = input.start_offset()
+  let end = start + input.length()
+  let mut index = start
+  while index < end {
+    let cu = s.unsafe_get(index)
+    if cu == ' ' || (cu is '\t'..='\r') {
+      index += 1
+    } else {
+      break
+    }
+  }
+  index - start
+}
+
 ///| Zero or more ASCII whitespace
 pub fn space0(input : StringView) -> @nom.IResult[StringView, StringView] {
-  take_while_ascii((ch) => ch.is_ascii_whitespace())(input)
+  let consumed = scan_ascii_space(input)
+  Ok((input.view(end_offset=consumed), input.view(start_offset=consumed)))
 }
 
 ///| One or more ASCII whitespace
 pub fn space1(input : StringView) -> @nom.IResult[StringView, StringView] {
-  take_while1_ascii((ch) => ch.is_ascii_whitespace())(input)
+  let consumed = scan_ascii_space(input)
+  if consumed == 0 {
+    if input.length() == 0 {
+      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+    } else {
+      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)))
+    }
+  } else {
+    Ok((input.view(end_offset=consumed), input.view(start_offset=consumed)))
+  }
 }
 
 ///| One or more ASCII digits

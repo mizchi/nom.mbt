@@ -241,14 +241,41 @@ pub fn is_not(bytes : BytesView) -> @nom.Parser[BytesView, BytesView] {
   take_while1((b) => !table[b.to_int()])
 }
 
+fn scan_ascii_space(input : BytesView) -> Int {
+  let len = input.length()
+  let mut i = 0
+  while i < len {
+    match input.get(i) {
+      Some(b) =>
+        if b is (b' ' | b'\t' | b'\n' | b'\r') {
+          i = i + 1
+        } else {
+          break
+        }
+      None => break
+    }
+  }
+  i
+}
+
 ///| Zero or more ASCII whitespace bytes
 pub fn space0(input : BytesView) -> @nom.IResult[BytesView, BytesView] {
-  take_while((b) => b is (b' ' | b'\t' | b'\n' | b'\r'))(input)
+  let consumed = scan_ascii_space(input)
+  Ok((input.sub(end=consumed), input.sub(start=consumed)))
 }
 
 ///| One or more ASCII whitespace bytes
 pub fn space1(input : BytesView) -> @nom.IResult[BytesView, BytesView] {
-  take_while1((b) => b is (b' ' | b'\t' | b'\n' | b'\r'))(input)
+  let consumed = scan_ascii_space(input)
+  if consumed == 0 {
+    if input.length() == 0 {
+      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
+    } else {
+      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)))
+    }
+  } else {
+    Ok((input.sub(end=consumed), input.sub(start=consumed)))
+  }
 }
 
 ///| One or more ASCII digits
