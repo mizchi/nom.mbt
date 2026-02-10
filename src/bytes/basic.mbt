@@ -1,13 +1,14 @@
-///| Match an exact byte sequence
+///|
+/// Match an exact byte sequence
 pub fn tag(expected : BytesView) -> @nom.Parser[BytesView, BytesView] {
   fn(input) {
     let len = expected.length()
     if input.length() < len {
       Err(@nom.Err::Incomplete(@nom.Needed::Size(len)))
     } else {
-      let matched = input.sub(end=len)
+      let matched = input[:len]
       if matched == expected {
-        Ok((matched, input.sub(start=len)))
+        Ok((matched, input[len:]))
       } else {
         Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Tag)))
       }
@@ -15,7 +16,8 @@ pub fn tag(expected : BytesView) -> @nom.Parser[BytesView, BytesView] {
   }
 }
 
-///| Take a fixed number of bytes
+///|
+/// Take a fixed number of bytes
 pub fn take(count : Int) -> @nom.Parser[BytesView, BytesView] {
   fn(input) {
     if count < 0 || input.length() < count {
@@ -25,12 +27,13 @@ pub fn take(count : Int) -> @nom.Parser[BytesView, BytesView] {
         Err(@nom.Err::Incomplete(@nom.Needed::Size(count)))
       }
     } else {
-      Ok((input.sub(end=count), input.sub(start=count)))
+      Ok((input[:count], input[count:]))
     }
   }
 }
 
-///| Take bytes while predicate holds
+///|
+/// Take bytes while predicate holds
 pub fn take_while(pred : (Byte) -> Bool) -> @nom.Parser[BytesView, BytesView] {
   fn(input) {
     let mut rest = input
@@ -42,16 +45,18 @@ pub fn take_while(pred : (Byte) -> Bool) -> @nom.Parser[BytesView, BytesView] {
       }
     }
     let consumed = input.length() - rest.length()
-    Ok((input.sub(end=consumed), rest))
+    Ok((input[:consumed], rest))
   }
 }
 
-///| Take bytes until predicate holds (predicate byte is not consumed)
+///|
+/// Take bytes until predicate holds (predicate byte is not consumed)
 pub fn take_till(pred : (Byte) -> Bool) -> @nom.Parser[BytesView, BytesView] {
-  take_while((b) => !pred(b))
+  take_while(b => !pred(b))
 }
 
-///| Take bytes while predicate holds (must take at least one)
+///|
+/// Take bytes while predicate holds (must take at least one)
 pub fn take_while1(pred : (Byte) -> Bool) -> @nom.Parser[BytesView, BytesView] {
   fn(input) {
     match take_while(pred)(input) {
@@ -60,7 +65,11 @@ pub fn take_while1(pred : (Byte) -> Bool) -> @nom.Parser[BytesView, BytesView] {
           if input.length() == 0 {
             Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
           } else {
-            Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)))
+            Err(
+              @nom.Err::Error(
+                @nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1),
+              ),
+            )
           }
         } else {
           Ok((matched, rest))
@@ -70,7 +79,8 @@ pub fn take_while1(pred : (Byte) -> Bool) -> @nom.Parser[BytesView, BytesView] {
   }
 }
 
-///| Find the first index of a byte pattern
+///|
+/// Find the first index of a byte pattern
 fn find_subslice(input : BytesView, needle : BytesView) -> Int? {
   let nlen = needle.length()
   if nlen == 0 {
@@ -86,12 +96,7 @@ fn find_subslice(input : BytesView, needle : BytesView) -> Int? {
         let mut i = 0
         while i < ilen {
           match input.get(i) {
-            Some(b) =>
-              if b == target {
-                return Some(i)
-              } else {
-                i = i + 1
-              }
+            Some(b) => if b == target { return Some(i) } else { i = i + 1 }
             None => break
           }
         }
@@ -104,7 +109,8 @@ fn find_subslice(input : BytesView, needle : BytesView) -> Int? {
   }
 }
 
-///| Find the first index using Boyer-Moore-Horspool
+///|
+/// Find the first index using Boyer-Moore-Horspool
 fn find_subslice_bmh(input : BytesView, needle : BytesView) -> Int? {
   let nlen = needle.length()
   let ilen = input.length()
@@ -134,12 +140,7 @@ fn find_subslice_bmh(input : BytesView, needle : BytesView) -> Int? {
           let mut j = 0
           while j < last_idx {
             match (input.get(pos + j), needle.get(j)) {
-              (Some(x), Some(y)) =>
-                if x == y {
-                  j = j + 1
-                } else {
-                  break
-                }
+              (Some(x), Some(y)) => if x == y { j = j + 1 } else { break }
               _ => break
             }
           }
@@ -156,7 +157,8 @@ fn find_subslice_bmh(input : BytesView, needle : BytesView) -> Int? {
   None
 }
 
-///| Take bytes until a pattern is found (pattern is not consumed)
+///|
+/// Take bytes until a pattern is found (pattern is not consumed)
 pub fn take_until(needle : BytesView) -> @nom.Parser[BytesView, BytesView] {
   fn(input) {
     let nlen = needle.length()
@@ -166,20 +168,25 @@ pub fn take_until(needle : BytesView) -> @nom.Parser[BytesView, BytesView] {
       Err(@nom.Err::Incomplete(@nom.Needed::Size(nlen)))
     } else {
       match find_subslice(input, needle) {
-        Some(idx) => Ok((input.sub(end=idx), input.sub(start=idx)))
+        Some(idx) => Ok((input[:idx], input[idx:]))
         None => Err(@nom.Err::Incomplete(@nom.Needed::Unknown))
       }
     }
   }
 }
 
-///| Take bytes until a pattern is found (must take at least one)
+///|
+/// Take bytes until a pattern is found (must take at least one)
 pub fn take_until1(needle : BytesView) -> @nom.Parser[BytesView, BytesView] {
   fn(input) {
     match take_until(needle)(input) {
       Ok((matched, rest)) =>
         if matched.length() == 0 {
-          Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeUntil1)))
+          Err(
+            @nom.Err::Error(
+              @nom.ParseError::new(input, @nom.ErrorKind::TakeUntil1),
+            ),
+          )
         } else {
           Ok((matched, rest))
         }
@@ -188,27 +195,32 @@ pub fn take_until1(needle : BytesView) -> @nom.Parser[BytesView, BytesView] {
   }
 }
 
-///| Satisfy a predicate on the next byte
+///|
+/// Satisfy a predicate on the next byte
 pub fn satisfy(pred : (Byte) -> Bool) -> @nom.Parser[BytesView, Byte] {
   fn(input) {
     match input.get(0) {
       Some(b) =>
         if pred(b) {
-          Ok((b, input.sub(start=1)))
+          Ok((b, input[1:]))
         } else {
-          Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Char)))
+          Err(
+            @nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Char)),
+          )
         }
       None => Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
     }
   }
 }
 
-///| Match a specific byte
+///|
+/// Match a specific byte
 pub fn byte(expected : Byte) -> @nom.Parser[BytesView, Byte] {
-  satisfy((b) => b == expected)
+  satisfy(b => b == expected)
 }
 
-///| Build byte lookup table for fast membership checks
+///|
+/// Build byte lookup table for fast membership checks
 fn build_byte_table(bytes : BytesView) -> Array[Bool] {
   let table : Array[Bool] = Array::make(256, false)
   for b in bytes {
@@ -217,30 +229,35 @@ fn build_byte_table(bytes : BytesView) -> Array[Bool] {
   table
 }
 
-///| Match one of the given bytes
+///|
+/// Match one of the given bytes
 pub fn one_of(bytes : BytesView) -> @nom.Parser[BytesView, Byte] {
   let table = build_byte_table(bytes)
-  satisfy((b) => table[b.to_int()])
+  satisfy(b => table[b.to_int()])
 }
 
-///| Match none of the given bytes
+///|
+/// Match none of the given bytes
 pub fn none_of(bytes : BytesView) -> @nom.Parser[BytesView, Byte] {
   let table = build_byte_table(bytes)
-  satisfy((b) => !table[b.to_int()])
+  satisfy(b => !table[b.to_int()])
 }
 
-///| Take one or more bytes from the given set
+///|
+/// Take one or more bytes from the given set
 pub fn is_a(bytes : BytesView) -> @nom.Parser[BytesView, BytesView] {
   let table = build_byte_table(bytes)
-  take_while1((b) => table[b.to_int()])
+  take_while1(b => table[b.to_int()])
 }
 
-///| Take one or more bytes not in the given set
+///|
+/// Take one or more bytes not in the given set
 pub fn is_not(bytes : BytesView) -> @nom.Parser[BytesView, BytesView] {
   let table = build_byte_table(bytes)
-  take_while1((b) => !table[b.to_int()])
+  take_while1(b => !table[b.to_int()])
 }
 
+///|
 fn scan_ascii_space(input : BytesView) -> Int {
   let len = input.length()
   let mut i = 0
@@ -258,27 +275,32 @@ fn scan_ascii_space(input : BytesView) -> Int {
   i
 }
 
-///| Zero or more ASCII whitespace bytes
+///|
+/// Zero or more ASCII whitespace bytes
 pub fn space0(input : BytesView) -> @nom.IResult[BytesView, BytesView] {
   let consumed = scan_ascii_space(input)
-  Ok((input.sub(end=consumed), input.sub(start=consumed)))
+  Ok((input[:consumed], input[consumed:]))
 }
 
-///| One or more ASCII whitespace bytes
+///|
+/// One or more ASCII whitespace bytes
 pub fn space1(input : BytesView) -> @nom.IResult[BytesView, BytesView] {
   let consumed = scan_ascii_space(input)
   if consumed == 0 {
     if input.length() == 0 {
       Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
     } else {
-      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)))
+      Err(
+        @nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)),
+      )
     }
   } else {
-    Ok((input.sub(end=consumed), input.sub(start=consumed)))
+    Ok((input[:consumed], input[consumed:]))
   }
 }
 
-///| One or more ASCII digits
+///|
+/// One or more ASCII digits
 pub fn digit1(input : BytesView) -> @nom.IResult[BytesView, BytesView] {
-  take_while1((b) => b is (b'0'..=b'9'))(input)
+  take_while1(b => b is (b'0'..=b'9'))(input)
 }

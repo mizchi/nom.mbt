@@ -1,4 +1,5 @@
-///| Parse two parsers in sequence
+///|
+/// Parse two parsers in sequence
 pub fn[I, O1, O2] pair(
   first : Parser[I, O1],
   second : Parser[I, O2],
@@ -15,7 +16,8 @@ pub fn[I, O1, O2] pair(
   }
 }
 
-///| Parse second after first, returning the second
+///|
+/// Parse second after first, returning the second
 pub fn[I, O1, O2] preceded(
   first : Parser[I, O1],
   second : Parser[I, O2],
@@ -32,7 +34,8 @@ pub fn[I, O1, O2] preceded(
   }
 }
 
-///| Parse second after first, returning the first
+///|
+/// Parse second after first, returning the first
 pub fn[I, O1, O2] terminated(
   first : Parser[I, O1],
   second : Parser[I, O2],
@@ -49,7 +52,8 @@ pub fn[I, O1, O2] terminated(
   }
 }
 
-///| Parse with start/end delimiters
+///|
+/// Parse with start/end delimiters
 pub fn[I, O1, O2, O3] delimited(
   open : Parser[I, O1],
   inner : Parser[I, O2],

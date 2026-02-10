@@ -1,4 +1,5 @@
-///| Error kinds similar to nom::error::ErrorKind
+///|
+/// Error kinds similar to nom::error::ErrorKind
 pub(all) enum ErrorKind {
   Tag
   Take
@@ -14,33 +15,39 @@ pub(all) enum ErrorKind {
   Custom(String)
 } derive(Show, ToJson, Eq)
 
-///| Streaming-needed hint (like nom::Needed)
+///|
+/// Streaming-needed hint (like nom::Needed)
 pub(all) enum Needed {
   Unknown
   Size(Int)
 } derive(Show, ToJson, Eq)
 
-///| Parse error with input snapshot and optional context stack
+///|
+/// Parse error with input snapshot and optional context stack
 pub struct ParseError[I] {
   input : I
   kind : ErrorKind
   context : Array[String]
 } derive(Show, ToJson, Eq)
 
-///| Error wrapper (recoverable vs failure)
+///|
+/// Error wrapper (recoverable vs failure)
 pub(all) enum Err[E] {
   Error(E)
   Failure(E)
   Incomplete(Needed)
 } derive(Show, ToJson, Eq)
 
-///| Nom-style result type
+///|
+/// Nom-style result type
 pub type IResult[I, O] = Result[(O, I), Err[ParseError[I]]]
 
-///| Parser function type
+///|
+/// Parser function type
 pub type Parser[I, O] = (I) -> IResult[I, O]
 
-///| Input length trait for parsers that need to detect progress
+///|
+/// Input length trait for parsers that need to detect progress
 pub trait InputLen {
   length(Self) -> Int
 }
@@ -78,6 +85,7 @@ pub fn[I] to_failure(input : I, kind : ErrorKind) -> Err[ParseError[I]] {
   Err::Failure(ParseError::new(input, kind))
 }
 
+///|
 fn error_kind_label(kind : ErrorKind) -> String {
   match kind {
     Tag => "Tag"
@@ -95,6 +103,7 @@ fn error_kind_label(kind : ErrorKind) -> String {
   }
 }
 
+///|
 fn join_context(ctx : Array[String]) -> String {
   let sb = StringBuilder::new()
   let mut first = true
@@ -108,27 +117,38 @@ fn join_context(ctx : Array[String]) -> String {
   sb.to_string()
 }
 
-///| Byte offset of a parsing error for BytesView inputs
+///|
+/// Byte offset of a parsing error for BytesView inputs
 pub fn bytes_error_offset(
   original : BytesView,
   err : ParseError[BytesView],
 ) -> Int {
   let orig_len = original.length()
   let err_len = err.input.length()
-  if orig_len >= err_len { orig_len - err_len } else { 0 }
+  if orig_len >= err_len {
+    orig_len - err_len
+  } else {
+    0
+  }
 }
 
-///| Code-unit offset of a parsing error for StringView inputs
+///|
+/// Code-unit offset of a parsing error for StringView inputs
 pub fn string_error_offset(
   original : StringView,
   err : ParseError[StringView],
 ) -> Int {
   let orig_len = original.length()
   let err_len = err.input.length()
-  if orig_len >= err_len { orig_len - err_len } else { 0 }
+  if orig_len >= err_len {
+    orig_len - err_len
+  } else {
+    0
+  }
 }
 
-///| Return (offset, line, column) for a StringView parsing error
+///|
+/// Return (offset, line, column) for a StringView parsing error
 pub fn string_error_location(
   original : StringView,
   err : ParseError[StringView],
@@ -152,6 +172,7 @@ pub fn string_error_location(
   (offset, line, col)
 }
 
+///|
 fn format_error_detail_string(
   original : StringView,
   err : ParseError[StringView],
@@ -160,23 +181,22 @@ fn format_error_detail_string(
   let (offset, line, col) = string_error_location(original, err)
   let sb = StringBuilder::new()
   sb
-    ..write_string(label)
-    ..write_string(" at ")
-    ..write_string(line.to_string())
-    ..write_string(":")
-    ..write_string(col.to_string())
-    ..write_string(" (offset ")
-    ..write_string(offset.to_string())
-    ..write_string("): ")
-    ..write_string(error_kind_label(err.kind))
+  ..write_string(label)
+  ..write_string(" at ")
+  ..write_string(line.to_string())
+  ..write_string(":")
+  ..write_string(col.to_string())
+  ..write_string(" (offset ")
+  ..write_string(offset.to_string())
+  ..write_string("): ")
+  .write_string(error_kind_label(err.kind))
   if err.context.length() > 0 {
-    sb
-      ..write_string("\ncontext: ")
-      ..write_string(join_context(err.context))
+    sb..write_string("\ncontext: ").write_string(join_context(err.context))
   }
   sb.to_string()
 }
 
+///|
 fn format_error_detail_bytes(
   original : BytesView,
   err : ParseError[BytesView],
@@ -185,34 +205,35 @@ fn format_error_detail_bytes(
   let offset = bytes_error_offset(original, err)
   let sb = StringBuilder::new()
   sb
-    ..write_string(label)
-    ..write_string(" at offset ")
-    ..write_string(offset.to_string())
-    ..write_string(": ")
-    ..write_string(error_kind_label(err.kind))
+  ..write_string(label)
+  ..write_string(" at offset ")
+  ..write_string(offset.to_string())
+  ..write_string(": ")
+  .write_string(error_kind_label(err.kind))
   if err.context.length() > 0 {
-    sb
-      ..write_string("\ncontext: ")
-      ..write_string(join_context(err.context))
+    sb..write_string("\ncontext: ").write_string(join_context(err.context))
   }
   sb.to_string()
 }
 
-///| Format a string parsing error with location and context
+///|
+/// Format a string parsing error with location and context
 pub fn format_error_string(
   original : StringView,
   err : Err[ParseError[StringView]],
 ) -> String {
   match err {
     Err::Error(parse) => format_error_detail_string(original, parse, "error")
-    Err::Failure(parse) => format_error_detail_string(original, parse, "failure")
+    Err::Failure(parse) =>
+      format_error_detail_string(original, parse, "failure")
     Err::Incomplete(Needed::Unknown) => "incomplete: needed more input"
     Err::Incomplete(Needed::Size(n)) =>
       "incomplete: needed ".to_string() + n.to_string()
   }
 }
 
-///| Format a bytes parsing error with offset and context
+///|
+/// Format a bytes parsing error with offset and context
 pub fn format_error_bytes(
   original : BytesView,
   err : Err[ParseError[BytesView]],

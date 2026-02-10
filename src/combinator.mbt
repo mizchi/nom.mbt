@@ -1,8 +1,6 @@
-///| Map the output of a parser
-pub fn[I, O, O2] map(
-  parser : Parser[I, O],
-  f : (O) -> O2,
-) -> Parser[I, O2] {
+///|
+/// Map the output of a parser
+pub fn[I, O, O2] map(parser : Parser[I, O], f : (O) -> O2) -> Parser[I, O2] {
   fn(input) {
     match parser(input) {
       Ok((value, rest)) => Ok((f(value), rest))
@@ -11,15 +9,14 @@ pub fn[I, O, O2] map(
   }
 }
 
-///| Map the output, returning a constant value on success
-pub fn[I, O, O2] value(
-  v : O2,
-  parser : Parser[I, O],
-) -> Parser[I, O2] {
-  map(parser, (_) => v)
+///|
+/// Map the output, returning a constant value on success
+pub fn[I, O, O2] value(v : O2, parser : Parser[I, O]) -> Parser[I, O2] {
+  map(parser, _ => v)
 }
 
-///| Optional parser (never fails)
+///|
+/// Optional parser (never fails)
 pub fn[I, O] opt(parser : Parser[I, O]) -> Parser[I, O?] {
   fn(input) {
     match parser(input) {
@@ -31,7 +28,8 @@ pub fn[I, O] opt(parser : Parser[I, O]) -> Parser[I, O?] {
   }
 }
 
-///| Convert recoverable errors into failures (like nom::combinator::cut)
+///|
+/// Convert recoverable errors into failures (like nom::combinator::cut)
 pub fn[I, O] cut(parser : Parser[I, O]) -> Parser[I, O] {
   fn(input) {
     match parser(input) {
@@ -43,7 +41,8 @@ pub fn[I, O] cut(parser : Parser[I, O]) -> Parser[I, O] {
   }
 }
 
-///| Attach context labels to errors
+///|
+/// Attach context labels to errors
 pub fn[I, O] context(label : String, parser : Parser[I, O]) -> Parser[I, O] {
   fn(input) {
     match parser(input) {
@@ -55,7 +54,8 @@ pub fn[I, O] context(label : String, parser : Parser[I, O]) -> Parser[I, O] {
   }
 }
 
-///| Map errors
+///|
+/// Map errors
 pub fn[I, O] map_err(
   parser : Parser[I, O],
   f : (ParseError[I]) -> ParseError[I],
@@ -70,18 +70,21 @@ pub fn[I, O] map_err(
   }
 }
 
-///| Convert streaming Incomplete into a normal error (for complete parsing)
+///|
+/// Convert streaming Incomplete into a normal error (for complete parsing)
 pub fn[I, O] complete(parser : Parser[I, O]) -> Parser[I, O] {
   fn(input) {
     match parser(input) {
       Ok(result) => Ok(result)
-      Err(Err::Incomplete(_)) => Err(Err::Error(ParseError::new(input, ErrorKind::Eof)))
+      Err(Err::Incomplete(_)) =>
+        Err(Err::Error(ParseError::new(input, ErrorKind::Eof)))
       Err(err) => Err(err)
     }
   }
 }
 
-///| Map the output with a fallible function
+///|
+/// Map the output with a fallible function
 pub fn[I, O, O2, E2] map_res(
   parser : Parser[I, O],
   f : (O) -> Result[O2, E2],

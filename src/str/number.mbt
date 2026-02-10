@@ -1,19 +1,16 @@
-///| Parse a signed integer (ASCII)
+///|
+/// Parse a signed integer (ASCII)
 pub fn int(input : StringView) -> @nom.IResult[StringView, Int] {
   let parser = @nom.map_res(
     @nom.pair(@nom.opt(one_of2('+', '-')), digit1),
-    (pair) => {
+    pair => {
       let sign = pair.0
       let digits = pair.1
-      let parsed : Result[Int, @strconv.StrConvError] =
-        try? @strconv.parse_int(digits)
+      let parsed : Result[Int, @strconv.StrConvError] = try? @strconv.parse_int(
+        digits,
+      )
       match parsed {
-        Ok(value) =>
-          if sign is Some('-') {
-            Ok(-value)
-          } else {
-            Ok(value)
-          }
+        Ok(value) => if sign is Some('-') { Ok(-value) } else { Ok(value) }
         Err(_) => Err(())
       }
     },

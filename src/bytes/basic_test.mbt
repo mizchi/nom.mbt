@@ -27,7 +27,7 @@ test "bytes is_not and take_till" {
     }
     Err(_) => fail("is_not failed")
   }
-  match take_till((b) => b == b'=')(input) {
+  match take_till(b => b == b'=')(input) {
     Ok((matched, rest)) => {
       assert_eq(matched, b"xyz"[:])
       assert_eq(rest, b"=123"[:])

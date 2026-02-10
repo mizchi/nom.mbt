@@ -1,29 +1,35 @@
-///| Streaming buffer for BytesView parsers
+///|
+/// Streaming buffer for BytesView parsers
 pub struct Stream {
   buf : Bytes
 } derive(Show, Eq)
 
-///| Create an empty stream buffer
+///|
+/// Create an empty stream buffer
 pub fn Stream::new() -> Stream {
   { buf: Bytes::default() }
 }
 
-///| Create a stream from an existing buffer
+///|
+/// Create a stream from an existing buffer
 pub fn Stream::from_bytes(buf : Bytes) -> Stream {
   { buf, }
 }
 
-///| View the current buffered input
+///|
+/// View the current buffered input
 pub fn Stream::view(self : Stream) -> BytesView {
   self.buf[:]
 }
 
-///| Check whether the buffer is empty
+///|
+/// Check whether the buffer is empty
 pub fn Stream::is_empty(self : Stream) -> Bool {
   self.buf.length() == 0
 }
 
-///| Append a new chunk to the buffer
+///|
+/// Append a new chunk to the buffer
 pub fn Stream::feed(self : Stream, chunk : BytesView) -> Stream {
   if chunk.length() == 0 {
     self
@@ -34,7 +40,8 @@ pub fn Stream::feed(self : Stream, chunk : BytesView) -> Stream {
   }
 }
 
-///| Run a parser on the buffer, advancing it on success
+///|
+/// Run a parser on the buffer, advancing it on success
 pub fn[O] Stream::parse(
   self : Stream,
   parser : @nom.Parser[BytesView, O],

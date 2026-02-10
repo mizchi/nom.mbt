@@ -1,4 +1,5 @@
-///| Try parsers in order, returning the first success
+///|
+/// Try parsers in order, returning the first success
 pub fn[I, O] alt(parsers : Array[Parser[I, O]]) -> Parser[I, O] {
   fn(input) {
     let mut last_err : Err[ParseError[I]]? = None
@@ -22,7 +23,8 @@ pub fn[I, O] alt(parsers : Array[Parser[I, O]]) -> Parser[I, O] {
   }
 }
 
-///| Try two parsers in order, returning the first success
+///|
+/// Try two parsers in order, returning the first success
 pub fn[I, O] alt2(first : Parser[I, O], second : Parser[I, O]) -> Parser[I, O] {
   fn(input) {
     match first(input) {
