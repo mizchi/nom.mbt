@@ -1,6 +1,6 @@
 {
   "name": "mizchi/nom",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "source": "src",
   "preferred-target": "js",
   "readme": "README.mbt.md",
