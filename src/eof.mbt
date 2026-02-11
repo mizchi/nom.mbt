@@ -1,4 +1,5 @@
-///| Match end of input
+///|
+/// Match end of input
 pub fn[I : InputLen] eof(input : I) -> IResult[I, Unit] {
   if input.length() == 0 {
     Ok(((), input))
@@ -7,7 +8,8 @@ pub fn[I : InputLen] eof(input : I) -> IResult[I, Unit] {
   }
 }
 
-///| Ensure the parser consumes all input
+///|
+/// Ensure the parser consumes all input
 pub fn[I : InputLen, O] all_consuming(parser : Parser[I, O]) -> Parser[I, O] {
   fn(input) {
     match parser(input) {

@@ -1,27 +1,32 @@
-///| Benchmarks for string parsers
-
+///|
+/// Benchmarks for string parsers
 let expr_short = "1 + 2 * 3 - 4 / 5 + 6 * (7 + 8) - 9"
 
-let expr_long =
-  "1 + 2 * 3 - 4 / 5 + 6 * (7 + 8) - 9 + 10 * 11 - 12 / 13 + 14 * (15 + 16) - 17 + 18 * 19 - 20 / 21 + 22 * (23 + 24) - 25 + 26 * 27 - 28 / 29 + 30 * (31 + 32) - 33 + 34 * 35 - 36 / 37 + 38 * (39 + 40) - 41 + 42 * 43 - 44 / 45 + 46 * (47 + 48) - 49 + 50"
+///|
+let expr_long = "1 + 2 * 3 - 4 / 5 + 6 * (7 + 8) - 9 + 10 * 11 - 12 / 13 + 14 * (15 + 16) - 17 + 18 * 19 - 20 / 21 + 22 * (23 + 24) - 25 + 26 * 27 - 28 / 29 + 30 * (31 + 32) - 33 + 34 * 35 - 36 / 37 + 38 * (39 + 40) - 41 + 42 * 43 - 44 / 45 + 46 * (47 + 48) - 49 + 50"
 
-let expr_complex_short =
-  "((1 + 2) * (3 + 4) - (5 * (6 + 7) - 8) + 9) * (10 + (11 - 12) * (13 + 14 / (15 + 16))) - 17"
+///|
+let expr_complex_short = "((1 + 2) * (3 + 4) - (5 * (6 + 7) - 8) + 9) * (10 + (11 - 12) * (13 + 14 / (15 + 16))) - 17"
 
-let expr_complex_long =
-  "((1 + 2) * (3 + 4) - (5 * (6 + 7) - 8) + 9) * (10 + (11 - 12) * (13 + 14 / (15 + 16))) - 17 + (18 * (19 + 20) - (21 + 22) * (23 - 24 / (25 + 26))) + ((27 + 28) * (29 - 30) + (31 * (32 + 33 - 34))) - (35 + (36 * (37 + 38)) + (39 - 40 / (41 + 42)))"
+///|
+let expr_complex_long = "((1 + 2) * (3 + 4) - (5 * (6 + 7) - 8) + 9) * (10 + (11 - 12) * (13 + 14 / (15 + 16))) - 17 + (18 * (19 + 20) - (21 + 22) * (23 - 24 / (25 + 26))) + ((27 + 28) * (29 - 30) + (31 * (32 + 33 - 34))) - (35 + (36 * (37 + 38)) + (39 - 40 / (41 + 42)))"
 
-let expr_deep_short =
-  "((((1 + 2) * (3 + 4)) - (5 - (6 + 7))) + (8 * (9 + (10 - 11))))"
+///|
+let expr_deep_short = "((((1 + 2) * (3 + 4)) - (5 - (6 + 7))) + (8 * (9 + (10 - 11))))"
 
-let expr_deep_long =
-  "((((1 + 2) * (3 + 4)) - (5 - (6 + 7))) + (8 * (9 + (10 - 11)))) + (((12 + 13) * (14 - (15 / (16 + 17)))) - (18 + (19 * (20 - 21)))) + (22 - (23 * (24 + (25 - (26 / (27 + 28))))))"
+///|
+let expr_deep_long = "((((1 + 2) * (3 + 4)) - (5 - (6 + 7))) + (8 * (9 + (10 - 11)))) + (((12 + 13) * (14 - (15 / (16 + 17)))) - (18 + (19 * (20 - 21)))) + (22 - (23 * (24 + (25 - (26 / (27 + 28))))))"
 
 // Unicode whitespace for non-ASCII benchmarks.
 // U+3000 IDEOGRAPHIC SPACE, U+2003 EM SPACE.
+
+///|
 let ws_ideo : String = (0x3000 : Int).unsafe_to_char().to_string()
+
+///|
 let ws_em : String = (0x2003 : Int).unsafe_to_char().to_string()
 
+///|
 fn with_unicode_ws(expr : StringView) -> String {
   let sb = StringBuilder::new(size_hint=expr.length())
   let mut toggle = false
@@ -40,22 +45,30 @@ fn with_unicode_ws(expr : StringView) -> String {
   sb.to_string()
 }
 
+///|
 let expr_unicode_short : String = with_unicode_ws(expr_short[:])
 
+///|
 let expr_unicode_long : String = with_unicode_ws(expr_long[:])
 
+///|
 let expr_unicode_complex_short : String = with_unicode_ws(expr_complex_short[:])
 
+///|
 let expr_unicode_complex_long : String = with_unicode_ws(expr_complex_long[:])
 
+///|
 let expr_unicode_deep_short : String = with_unicode_ws(expr_deep_short[:])
 
+///|
 let expr_unicode_deep_long : String = with_unicode_ws(expr_deep_long[:])
 
+///|
 fn u(code : Int) -> String {
   (code : Int).unsafe_to_char().to_string()
 }
 
+///|
 fn fullwidth_number(n : Int) -> String {
   let s = n.to_string()
   let zero = '0'.to_int()
@@ -67,17 +80,27 @@ fn fullwidth_number(n : Int) -> String {
   sb.to_string()
 }
 
+///|
 let eq_char : Char = (0xff1d : Int).unsafe_to_char()
+
+///|
 let sep_char : Char = (0xff1b : Int).unsafe_to_char()
+
+///|
 let eq_str : String = eq_char.to_string()
+
+///|
 let sep_str : String = sep_char.to_string()
 
+///|
 let id_base : String = u(0x5909) + u(0x6570)
 
+///|
 fn ident(n : Int) -> String {
   id_base + fullwidth_number(n)
 }
 
+///|
 fn make_assignments(pairs : Array[(String, Int)]) -> String {
   let sb = StringBuilder::new()
   let mut first = true
@@ -98,6 +121,7 @@ fn make_assignments(pairs : Array[(String, Int)]) -> String {
   sb.to_string()
 }
 
+///|
 let assign_pairs_short : Array[(String, Int)] = [
   (ident(1), 123),
   (ident(2), 456),
@@ -106,6 +130,7 @@ let assign_pairs_short : Array[(String, Int)] = [
   (ident(5), 567),
 ]
 
+///|
 let assign_pairs_long : Array[(String, Int)] = [
   (ident(1), 12),
   (ident(2), 34),
@@ -129,14 +154,19 @@ let assign_pairs_long : Array[(String, Int)] = [
   (ident(20), 7890),
 ]
 
-let assign_pairs_single : Array[(String, Int)] = [
-  (ident(1), 123),
-]
+///|
+let assign_pairs_single : Array[(String, Int)] = [(ident(1), 123)]
 
+///|
 let assign_unicode_short : String = make_assignments(assign_pairs_short)
+
+///|
 let assign_unicode_long : String = make_assignments(assign_pairs_long)
+
+///|
 let assign_unicode_single : String = make_assignments(assign_pairs_single)
 
+///|
 let unicode_ws_sample : String = {
   let sb = StringBuilder::new()
   for _ in 0..<64 {
@@ -146,25 +176,25 @@ let unicode_ws_sample : String = {
   sb.to_string()
 }
 
+///|
 let unicode_ident_sample : String = ident(12345)
+
+///|
 let unicode_number_sample : String = fullwidth_number(123456789)
 
+///|
 fn skip_ws(input : StringView, idx : Int, len : Int) -> Int {
   let mut i = idx
   while i < len {
     match input.get_char(i) {
-      Some(c) =>
-        if c.is_ascii_whitespace() {
-          i = i + 1
-        } else {
-          break
-        }
+      Some(c) => if c.is_ascii_whitespace() { i = i + 1 } else { break }
       None => break
     }
   }
   i
 }
 
+///|
 fn parse_number(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   let mut i = idx
   let mut sign = 1
@@ -183,10 +213,7 @@ fn parse_number(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   }
   let zero = '0'.to_int()
   match input.get_char(i) {
-    Some(c) =>
-      if not(c.is_ascii_digit()) {
-        return None
-      }
+    Some(c) => if not(c.is_ascii_digit()) { return None }
     None => return None
   }
   let mut val = 0
@@ -205,6 +232,7 @@ fn parse_number(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   Some((val * sign, i))
 }
 
+///|
 fn parse_factor(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   let mut i = skip_ws(input, idx, len)
   if i >= len {
@@ -228,6 +256,7 @@ fn parse_factor(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   }
 }
 
+///|
 fn parse_term(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   match parse_factor(input, idx, len) {
     Some((value, next)) => {
@@ -240,7 +269,7 @@ fn parse_term(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
         }
         let op = input.get_char(op_idx)
         match op {
-          Some('*') => {
+          Some('*') =>
             match parse_factor(input, op_idx + 1, len) {
               Some((rhs, next2)) => {
                 acc = acc * rhs
@@ -248,8 +277,7 @@ fn parse_term(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
               }
               None => break
             }
-          }
-          Some('/') => {
+          Some('/') =>
             match parse_factor(input, op_idx + 1, len) {
               Some((rhs, next2)) => {
                 acc = acc / rhs
@@ -257,7 +285,6 @@ fn parse_term(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
               }
               None => break
             }
-          }
           _ => break
         }
       }
@@ -267,6 +294,7 @@ fn parse_term(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   }
 }
 
+///|
 fn parse_expr(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   match parse_term(input, idx, len) {
     Some((value, next)) => {
@@ -279,7 +307,7 @@ fn parse_expr(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
         }
         let op = input.get_char(op_idx)
         match op {
-          Some('+') => {
+          Some('+') =>
             match parse_term(input, op_idx + 1, len) {
               Some((rhs, next2)) => {
                 acc = acc + rhs
@@ -287,8 +315,7 @@ fn parse_expr(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
               }
               None => break
             }
-          }
-          Some('-') => {
+          Some('-') =>
             match parse_term(input, op_idx + 1, len) {
               Some((rhs, next2)) => {
                 acc = acc - rhs
@@ -296,7 +323,6 @@ fn parse_expr(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
               }
               None => break
             }
-          }
           _ => break
         }
       }
@@ -306,34 +332,44 @@ fn parse_expr(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   }
 }
 
+///|
 fn parse_calc_hand(input : StringView) -> Int? {
   let len = input.char_length()
   match parse_expr(input, 0, len) {
     Some((value, next)) => {
       let end = skip_ws(input, next, len)
-      if end == len { Some(value) } else { None }
+      if end == len {
+        Some(value)
+      } else {
+        None
+      }
     }
     None => None
   }
 }
 
+///|
 fn space0_unicode(input : StringView) -> @nom.IResult[StringView, StringView] {
-  take_while((ch) => ch.is_whitespace())(input)
+  take_while(ch => ch.is_whitespace())(input)
 }
 
+///|
 fn digit1_unicode(input : StringView) -> @nom.IResult[StringView, StringView] {
-  take_while1((ch) => ch.is_ascii_digit())(input)
+  take_while1(ch => ch.is_ascii_digit())(input)
 }
 
+///|
 fn is_fullwidth_digit(ch : Char) -> Bool {
   let v = ch.to_int()
   v >= 0xff10 && v <= 0xff19
 }
 
+///|
 fn fullwidth_digit1(input : StringView) -> @nom.IResult[StringView, StringView] {
   take_while1(is_fullwidth_digit)(input)
 }
 
+///|
 fn parse_fullwidth_digits(digits : StringView) -> Result[Int, Unit] {
   let mut acc = 0
   for ch in digits {
@@ -345,12 +381,14 @@ fn parse_fullwidth_digits(digits : StringView) -> Result[Int, Unit] {
   Ok(acc)
 }
 
+///|
 fn number_fullwidth(input : StringView) -> @nom.IResult[StringView, Int] {
   @nom.map_res(fullwidth_digit1, parse_fullwidth_digits, @nom.ErrorKind::MapRes)(
     input,
   )
 }
 
+///|
 fn is_ident_char_unicode(ch : Char) -> Bool {
   not(ch.is_ascii()) &&
   not(ch.is_whitespace()) &&
@@ -358,10 +396,12 @@ fn is_ident_char_unicode(ch : Char) -> Bool {
   ch != sep_char
 }
 
+///|
 fn ident_unicode(input : StringView) -> @nom.IResult[StringView, StringView] {
   take_while1(is_ident_char_unicode)(input)
 }
 
+///|
 fn expect_char_unicode(
   input : StringView,
   expected : Char,
@@ -378,7 +418,10 @@ fn expect_char_unicode(
   }
 }
 
-fn ident_unicode_fast(input : StringView) -> @nom.IResult[StringView, StringView] {
+///|
+fn ident_unicode_fast(
+  input : StringView,
+) -> @nom.IResult[StringView, StringView] {
   let mut consumed = 0
   let mut has = false
   for ch in input {
@@ -391,15 +434,16 @@ fn ident_unicode_fast(input : StringView) -> @nom.IResult[StringView, StringView
   }
   if has {
     Ok((input.view(end_offset=consumed), input.view(start_offset=consumed)))
+  } else if input.length() == 0 {
+    Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
   } else {
-    if input.length() == 0 {
-      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
-    } else {
-      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)))
-    }
+    Err(
+      @nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::TakeWhile1)),
+    )
   }
 }
 
+///|
 fn number_fullwidth_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   let mut consumed = 0
   let mut val = 0
@@ -415,15 +459,14 @@ fn number_fullwidth_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   }
   if has {
     Ok((val, input.view(start_offset=consumed)))
+  } else if input.length() == 0 {
+    Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
   } else {
-    if input.length() == 0 {
-      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
-    } else {
-      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Digit)))
-    }
+    Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Digit)))
   }
 }
 
+///|
 fn assignment_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   match space0_unicode(input) {
     Ok((_, rest1)) =>
@@ -451,10 +494,12 @@ fn assignment_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] 
   }
 }
 
+///|
 fn assignment_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   assignment_unicode_fast(input)
 }
 
+///|
 fn sep_assignment_unicode_fast(
   input : StringView,
 ) -> @nom.IResult[StringView, Int] {
@@ -472,18 +517,19 @@ fn sep_assignment_unicode_fast(
   }
 }
 
+///|
 fn assignments_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   match assignment_unicode(input) {
     Ok((value, rest)) =>
-      @nom.fold_many0(
-        @nom.complete(sep_assignment_unicode_fast),
-        () => value,
-        (acc, item) => acc + item,
-      )(rest)
+      @nom.fold_many0(@nom.complete(sep_assignment_unicode_fast), () => value, (
+        acc,
+        item,
+      ) => acc + item)(rest)
     Err(err) => Err(err)
   }
 }
 
+///|
 fn[O] token_unicode(
   parser : @nom.Parser[StringView, O],
 ) -> @nom.Parser[StringView, O] {
@@ -503,21 +549,18 @@ fn[O] token_unicode(
   }
 }
 
+///|
 fn int_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   let parser = @nom.map_res(
     @nom.pair(@nom.opt(one_of2('+', '-')), digit1_unicode),
-    (pair) => {
+    pair => {
       let sign = pair.0
       let digits = pair.1
-      let parsed : Result[Int, @strconv.StrConvError] =
-        try? @strconv.parse_int(digits)
+      let parsed : Result[Int, @strconv.StrConvError] = try? @strconv.parse_int(
+        digits,
+      )
       match parsed {
-        Ok(value) =>
-          if sign is Some('-') {
-            Ok(-value)
-          } else {
-            Ok(value)
-          }
+        Ok(value) => if sign is Some('-') { Ok(-value) } else { Ok(value) }
         Err(_) => Err(())
       }
     },
@@ -526,16 +569,14 @@ fn int_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   parser(input)
 }
 
+///|
 fn parens_unicode(
   parser : @nom.Parser[StringView, Int],
 ) -> @nom.Parser[StringView, Int] {
-  @nom.delimited(
-    token_unicode(char('(')),
-    parser,
-    token_unicode(char(')')),
-  )
+  @nom.delimited(token_unicode(char('(')), parser, token_unicode(char(')')))
 }
 
+///|
 fn factor_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   fn parse(input) {
     match parens_unicode(expr_unicode)(input) {
@@ -547,29 +588,38 @@ fn factor_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
           Ok(result) => Ok(result)
           Err(@nom.Err::Failure(err)) => Err(@nom.Err::Failure(err))
           Err(@nom.Err::Error(_)) => Err(@nom.Err::Incomplete(needed))
-          Err(@nom.Err::Incomplete(needed2)) => Err(@nom.Err::Incomplete(needed2))
+          Err(@nom.Err::Incomplete(needed2)) =>
+            Err(@nom.Err::Incomplete(needed2))
         }
     }
   }
   token_unicode(parse)(input)
 }
 
+///|
 fn term_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   match factor_unicode(input) {
     Ok((value, rest)) =>
       @nom.fold_many0(
-        @nom.complete(@nom.pair(token_unicode(one_of2('*', '/')), factor_unicode)),
+        @nom.complete(
+          @nom.pair(token_unicode(one_of2('*', '/')), factor_unicode),
+        ),
         () => value,
         (acc, item) => {
           let op = item.0
           let rhs = item.1
-          if op == '*' { acc * rhs } else { acc / rhs }
+          if op == '*' {
+            acc * rhs
+          } else {
+            acc / rhs
+          }
         },
       )(rest)
     Err(err) => Err(err)
   }
 }
 
+///|
 fn expr_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
   match term_unicode(input) {
     Ok((value, rest)) =>
@@ -579,13 +629,18 @@ fn expr_unicode(input : StringView) -> @nom.IResult[StringView, Int] {
         (acc, item) => {
           let op = item.0
           let rhs = item.1
-          if op == '+' { acc + rhs } else { acc - rhs }
+          if op == '+' {
+            acc + rhs
+          } else {
+            acc - rhs
+          }
         },
       )(rest)
     Err(err) => Err(err)
   }
 }
 
+///|
 fn factor_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   match space0_unicode(input) {
     Ok((_, rest1)) =>
@@ -613,7 +668,8 @@ fn factor_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
               }
             Err(@nom.Err::Failure(err2)) => Err(@nom.Err::Failure(err2))
             Err(@nom.Err::Error(_)) => Err(@nom.Err::Incomplete(needed))
-            Err(@nom.Err::Incomplete(needed2)) => Err(@nom.Err::Incomplete(needed2))
+            Err(@nom.Err::Incomplete(needed2)) =>
+              Err(@nom.Err::Incomplete(needed2))
           }
         Err(@nom.Err::Error(_)) =>
           match int_unicode(rest1) {
@@ -629,6 +685,7 @@ fn factor_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   }
 }
 
+///|
 fn term_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   match factor_unicode_fast(input) {
     Ok((value, rest)) => {
@@ -644,7 +701,11 @@ fn term_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
                   let after_op = rest3.view(start_offset=op.utf16_len())
                   match factor_unicode_fast(after_op) {
                     Ok((rhs, rest4)) => {
-                      if op_char == '*' { acc = acc * rhs } else { acc = acc / rhs }
+                      if op_char == '*' {
+                        acc = acc * rhs
+                      } else {
+                        acc = acc / rhs
+                      }
                       rest2 = rest4
                     }
                     Err(err) => return Err(err)
@@ -663,6 +724,7 @@ fn term_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   }
 }
 
+///|
 fn expr_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   match term_unicode_fast(input) {
     Ok((value, rest)) => {
@@ -678,7 +740,11 @@ fn expr_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
                   let after_op = rest3.view(start_offset=op.utf16_len())
                   match term_unicode_fast(after_op) {
                     Ok((rhs, rest4)) => {
-                      if op_char == '+' { acc = acc + rhs } else { acc = acc - rhs }
+                      if op_char == '+' {
+                        acc = acc + rhs
+                      } else {
+                        acc = acc - rhs
+                      }
                       rest2 = rest4
                     }
                     Err(err) => return Err(err)
@@ -697,65 +763,54 @@ fn expr_unicode_fast(input : StringView) -> @nom.IResult[StringView, Int] {
   }
 }
 
+///|
 fn parse_calc_hand_unicode(input : StringView) -> Int? {
   let len = input.char_length()
   match parse_expr_unicode(input, 0, len) {
     Some((value, next)) => {
       let end = skip_ws_unicode(input, next, len)
-      if end == len { Some(value) } else { None }
+      if end == len {
+        Some(value)
+      } else {
+        None
+      }
     }
     None => None
   }
 }
 
+///|
 fn skip_ws_unicode(input : StringView, idx : Int, len : Int) -> Int {
   let mut i = idx
   while i < len {
     match input.get_char(i) {
-      Some(c) =>
-        if c.is_whitespace() {
-          i = i + 1
-        } else {
-          break
-        }
+      Some(c) => if c.is_whitespace() { i = i + 1 } else { break }
       None => break
     }
   }
   i
 }
 
-fn parse_ident_unicode_hand(
-  input : StringView,
-  idx : Int,
-  len : Int,
-) -> Int? {
+///|
+fn parse_ident_unicode_hand(input : StringView, idx : Int, len : Int) -> Int? {
   let mut i = idx
   if i >= len {
     return None
   }
   match input.get_char(i) {
-    Some(c) =>
-      if is_ident_char_unicode(c) {
-        i = i + 1
-      } else {
-        return None
-      }
+    Some(c) => if is_ident_char_unicode(c) { i = i + 1 } else { return None }
     None => return None
   }
   while i < len {
     match input.get_char(i) {
-      Some(c) =>
-        if is_ident_char_unicode(c) {
-          i = i + 1
-        } else {
-          break
-        }
+      Some(c) => if is_ident_char_unicode(c) { i = i + 1 } else { break }
       None => break
     }
   }
   Some(i)
 }
 
+///|
 fn parse_fullwidth_number_hand(
   input : StringView,
   idx : Int,
@@ -766,10 +821,7 @@ fn parse_fullwidth_number_hand(
     return None
   }
   match input.get_char(i) {
-    Some(c) =>
-      if not(is_fullwidth_digit(c)) {
-        return None
-      }
+    Some(c) => if not(is_fullwidth_digit(c)) { return None }
     None => return None
   }
   let mut val = 0
@@ -788,6 +840,7 @@ fn parse_fullwidth_number_hand(
   Some((val, i))
 }
 
+///|
 fn parse_assignment_hand_unicode(
   input : StringView,
   idx : Int,
@@ -799,12 +852,7 @@ fn parse_assignment_hand_unicode(
     None => return None
   }
   match input.get_char(i) {
-    Some(c) =>
-      if c == eq_char {
-        i = i + 1
-      } else {
-        return None
-      }
+    Some(c) => if c == eq_char { i = i + 1 } else { return None }
     None => return None
   }
   i = skip_ws_unicode(input, i, len)
@@ -814,6 +862,7 @@ fn parse_assignment_hand_unicode(
   }
 }
 
+///|
 fn parse_assignments_hand_unicode(input : StringView) -> Int? {
   let len = input.char_length()
   match parse_assignment_hand_unicode(input, 0, len) {
@@ -844,13 +893,22 @@ fn parse_assignments_hand_unicode(input : StringView) -> Int? {
         }
       }
       let end = skip_ws_unicode(input, i, len)
-      if end == len { Some(acc) } else { None }
+      if end == len {
+        Some(acc)
+      } else {
+        None
+      }
     }
     None => None
   }
 }
 
-fn parse_number_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
+///|
+fn parse_number_unicode(
+  input : StringView,
+  idx : Int,
+  len : Int,
+) -> (Int, Int)? {
   let mut i = idx
   let mut sign = 1
   if i < len {
@@ -868,10 +926,7 @@ fn parse_number_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)?
   }
   let zero = '0'.to_int()
   match input.get_char(i) {
-    Some(c) =>
-      if not(c.is_ascii_digit()) {
-        return None
-      }
+    Some(c) => if not(c.is_ascii_digit()) { return None }
     None => return None
   }
   let mut val = 0
@@ -890,7 +945,12 @@ fn parse_number_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)?
   Some((val * sign, i))
 }
 
-fn parse_factor_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
+///|
+fn parse_factor_unicode(
+  input : StringView,
+  idx : Int,
+  len : Int,
+) -> (Int, Int)? {
   let mut i = skip_ws_unicode(input, idx, len)
   if i >= len {
     return None
@@ -913,6 +973,7 @@ fn parse_factor_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)?
   }
 }
 
+///|
 fn parse_term_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   match parse_factor_unicode(input, idx, len) {
     Some((value, next)) => {
@@ -925,7 +986,7 @@ fn parse_term_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
         }
         let op = input.get_char(op_idx)
         match op {
-          Some('*') => {
+          Some('*') =>
             match parse_factor_unicode(input, op_idx + 1, len) {
               Some((rhs, next2)) => {
                 acc = acc * rhs
@@ -933,8 +994,7 @@ fn parse_term_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
               }
               None => break
             }
-          }
-          Some('/') => {
+          Some('/') =>
             match parse_factor_unicode(input, op_idx + 1, len) {
               Some((rhs, next2)) => {
                 acc = acc / rhs
@@ -942,7 +1002,6 @@ fn parse_term_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
               }
               None => break
             }
-          }
           _ => break
         }
       }
@@ -952,6 +1011,7 @@ fn parse_term_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   }
 }
 
+///|
 fn parse_expr_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   match parse_term_unicode(input, idx, len) {
     Some((value, next)) => {
@@ -964,7 +1024,7 @@ fn parse_expr_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
         }
         let op = input.get_char(op_idx)
         match op {
-          Some('+') => {
+          Some('+') =>
             match parse_term_unicode(input, op_idx + 1, len) {
               Some((rhs, next2)) => {
                 acc = acc + rhs
@@ -972,8 +1032,7 @@ fn parse_expr_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
               }
               None => break
             }
-          }
-          Some('-') => {
+          Some('-') =>
             match parse_term_unicode(input, op_idx + 1, len) {
               Some((rhs, next2)) => {
                 acc = acc - rhs
@@ -981,7 +1040,6 @@ fn parse_expr_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
               }
               None => break
             }
-          }
           _ => break
         }
       }
@@ -1222,5 +1280,7 @@ test "bench: unicode assignment" (b : @bench.T) {
 ///|
 test "bench: unicode assignment hand" (b : @bench.T) {
   let input = assign_unicode_single[:]
-  b.bench(fn() { b.keep(parse_assignment_hand_unicode(input, 0, input.char_length())) })
+  b.bench(fn() {
+    b.keep(parse_assignment_hand_unicode(input, 0, input.char_length()))
+  })
 }

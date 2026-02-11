@@ -1,13 +1,23 @@
-///| Benchmarks for bytes parsers
-
+///|
+/// Benchmarks for bytes parsers
 let request : Bytes = b"GET /12345?x=67890 HTTP/1.1\n"
+
+///|
 let bytes_short : BytesView = request[:]
+
+///|
 let bytes_long : BytesView = request.repeat(100)[:]
 
+///|
 let tag_get : BytesView = b"GET /"[:]
+
+///|
 let tag_q : BytesView = b"?x="[:]
+
+///|
 let tag_suffix : BytesView = b" HTTP/1.1\n"[:]
 
+///|
 fn parse_number(input : BytesView) -> @nom.IResult[BytesView, Int] {
   let mut rest = input
   let mut val = 0
@@ -24,32 +34,29 @@ fn parse_number(input : BytesView) -> @nom.IResult[BytesView, Int] {
   }
   if consumed {
     Ok((val, rest))
+  } else if input.length() == 0 {
+    Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
   } else {
-    if input.length() == 0 {
-      Err(@nom.Err::Incomplete(@nom.Needed::Size(1)))
-    } else {
-      Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Digit)))
-    }
+    Err(@nom.Err::Error(@nom.ParseError::new(input, @nom.ErrorKind::Digit)))
   }
 }
 
+///|
 fn request_sum(input : BytesView) -> @nom.IResult[BytesView, Int] {
   let parser = @nom.delimited(
     tag(tag_get),
     @nom.pair(parse_number, @nom.preceded(tag(tag_q), parse_number)),
     tag(tag_suffix),
   )
-  @nom.map(parser, (pair) => pair.0 + pair.1)(input)
+  @nom.map(parser, pair => pair.0 + pair.1)(input)
 }
 
+///|
 fn parse_requests_nom(input : BytesView) -> @nom.IResult[BytesView, Int] {
-  @nom.fold_many1(
-    request_sum,
-    (value) => value,
-    (acc, v) => acc + v,
-  )(input)
+  @nom.fold_many1(request_sum, value => value, (acc, v) => acc + v)(input)
 }
 
+///|
 fn match_tag(input : BytesView, idx : Int, len : Int, pat : BytesView) -> Int? {
   let pat_len = pat.length()
   if idx + pat_len > len {
@@ -58,18 +65,14 @@ fn match_tag(input : BytesView, idx : Int, len : Int, pat : BytesView) -> Int? {
   let mut i = 0
   while i < pat_len {
     match input.get(idx + i) {
-      Some(b) =>
-        if b == pat[i] {
-          i = i + 1
-        } else {
-          return None
-        }
+      Some(b) => if b == pat[i] { i = i + 1 } else { return None }
       None => return None
     }
   }
   Some(idx + pat_len)
 }
 
+///|
 fn parse_digits(input : BytesView, idx : Int, len : Int) -> (Int, Int)? {
   if idx >= len {
     return None
@@ -91,9 +94,14 @@ fn parse_digits(input : BytesView, idx : Int, len : Int) -> (Int, Int)? {
       None => break
     }
   }
-  if has_digit { Some((val, i)) } else { None }
+  if has_digit {
+    Some((val, i))
+  } else {
+    None
+  }
 }
 
+///|
 fn parse_request_hand(input : BytesView, idx : Int, len : Int) -> (Int, Int)? {
   match match_tag(input, idx, len, tag_get) {
     Some(i1) =>
@@ -117,6 +125,7 @@ fn parse_request_hand(input : BytesView, idx : Int, len : Int) -> (Int, Int)? {
   }
 }
 
+///|
 fn parse_requests_hand(input : BytesView) -> Int? {
   let len = input.length()
   let mut i = 0

@@ -1,17 +1,17 @@
-///| Parse zero or more, collecting results
+///|
+/// Parse zero or more, collecting results
 pub fn[I : InputLen, O] many0(parser : Parser[I, O]) -> Parser[I, Array[O]] {
   fn(input) {
     let acc : Array[O] = []
     fn rec(rest : I, acc : Array[O]) -> IResult[I, Array[O]] {
       match parser(rest) {
-        Ok((value, next)) => {
+        Ok((value, next)) =>
           if next.length() == rest.length() {
             Err(Err::Failure(ParseError::new(rest, ErrorKind::Many0)))
           } else {
             acc.push(value)
             rec(next, acc)
           }
-        }
         Err(Err::Error(_)) => Ok((acc, rest))
         Err(Err::Failure(err)) => Err(Err::Failure(err))
         Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed))
@@ -21,7 +21,8 @@ pub fn[I : InputLen, O] many0(parser : Parser[I, O]) -> Parser[I, Array[O]] {
   }
 }
 
-///| Parse zero or more, folding into an accumulator (no allocations)
+///|
+/// Parse zero or more, folding into an accumulator (no allocations)
 pub fn[I : InputLen, O, R] fold_many0(
   parser : Parser[I, O],
   init : () -> R,
@@ -31,13 +32,12 @@ pub fn[I : InputLen, O, R] fold_many0(
     let acc = init()
     fn rec(rest : I, acc : R) -> IResult[I, R] {
       match parser(rest) {
-        Ok((value, next)) => {
+        Ok((value, next)) =>
           if next.length() == rest.length() {
             Err(Err::Failure(ParseError::new(rest, ErrorKind::Many0)))
           } else {
             rec(next, fold(acc, value))
           }
-        }
         Err(Err::Error(_)) => Ok((acc, rest))
         Err(Err::Failure(err)) => Err(Err::Failure(err))
         Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed))
@@ -47,7 +47,8 @@ pub fn[I : InputLen, O, R] fold_many0(
   }
 }
 
-///| Parse one or more, folding into an accumulator (no allocations)
+///|
+/// Parse one or more, folding into an accumulator (no allocations)
 pub fn[I : InputLen, O, R] fold_many1(
   parser : Parser[I, O],
   init : (O) -> R,
@@ -59,13 +60,12 @@ pub fn[I : InputLen, O, R] fold_many1(
         let acc = init(value)
         fn rec(rest : I, acc : R) -> IResult[I, R] {
           match parser(rest) {
-            Ok((value, next)) => {
+            Ok((value, next)) =>
               if next.length() == rest.length() {
                 Err(Err::Failure(ParseError::new(rest, ErrorKind::Many0)))
               } else {
                 rec(next, fold(acc, value))
               }
-            }
             Err(Err::Error(_)) => Ok((acc, rest))
             Err(Err::Failure(err)) => Err(Err::Failure(err))
             Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed))
@@ -78,7 +78,8 @@ pub fn[I : InputLen, O, R] fold_many1(
   }
 }
 
-///| Parse one or more, collecting results
+///|
+/// Parse one or more, collecting results
 pub fn[I : InputLen, O] many1(parser : Parser[I, O]) -> Parser[I, Array[O]] {
   fn(input) {
     match parser(input) {
@@ -96,7 +97,8 @@ pub fn[I : InputLen, O] many1(parser : Parser[I, O]) -> Parser[I, Array[O]] {
   }
 }
 
-///| Parse a separated list (zero or more)
+///|
+/// Parse a separated list (zero or more)
 pub fn[I : InputLen, O, S] separated_list0(
   sep : Parser[I, S],
   parser : Parser[I, O],
@@ -107,14 +109,13 @@ pub fn[I : InputLen, O, S] separated_list0(
         let acc : Array[O] = [value]
         fn rec(rest : I, acc : Array[O]) -> IResult[I, Array[O]] {
           match pair(sep, parser)(rest) {
-            Ok((( _sep, item), next)) => {
+            Ok(((_sep, item), next)) =>
               if next.length() == rest.length() {
                 Err(Err::Failure(ParseError::new(rest, ErrorKind::Many0)))
               } else {
                 acc.push(item)
                 rec(next, acc)
               }
-            }
             Err(Err::Error(_)) => Ok((acc, rest))
             Err(Err::Failure(err)) => Err(Err::Failure(err))
             Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed))
@@ -129,7 +130,8 @@ pub fn[I : InputLen, O, S] separated_list0(
   }
 }
 
-///| Parse a separated list (one or more)
+///|
+/// Parse a separated list (one or more)
 pub fn[I : InputLen, O, S] separated_list1(
   sep : Parser[I, S],
   parser : Parser[I, O],

@@ -1,3 +1,4 @@
+///|
 priv enum Token {
   Number(Int)
   Plus
@@ -10,8 +11,10 @@ priv enum Token {
   RParen
 }
 
+///|
 type CalcResult[O] = Result[(O, Int), @nom.Err[@nom.ParseError[StringView]]]
 
+///|
 fn err_at(
   input : StringView,
   offset : Int,
@@ -20,6 +23,7 @@ fn err_at(
   @nom.Err::Error(@nom.ParseError::new(input.view(start_offset=offset), kind))
 }
 
+///|
 fn skip_ws_ascii(input : StringView, offset : Int, len : Int) -> Int {
   let mut i = offset
   while i < len {
@@ -36,6 +40,7 @@ fn skip_ws_ascii(input : StringView, offset : Int, len : Int) -> Int {
   i
 }
 
+///|
 fn lex_number(input : StringView, start : Int, len : Int) -> (Int, Int) {
   let mut i = start
   let mut value = 0
@@ -54,6 +59,7 @@ fn lex_number(input : StringView, start : Int, len : Int) -> (Int, Int) {
   (value, i)
 }
 
+///|
 fn lex_token(input : StringView, offset : Int, len : Int) -> CalcResult[Token] {
   let i = skip_ws_ascii(input, offset, len)
   if i >= len {
@@ -83,9 +89,14 @@ fn lex_token(input : StringView, offset : Int, len : Int) -> CalcResult[Token] {
   }
 }
 
+///|
 fn pow_int(base : Int, exp : Int) -> Int {
   if exp <= 0 {
-    if exp == 0 { 1 } else { 0 }
+    if exp == 0 {
+      1
+    } else {
+      0
+    }
   } else {
     let mut acc = 1
     let mut i = 0
@@ -97,6 +108,7 @@ fn pow_int(base : Int, exp : Int) -> Int {
   }
 }
 
+///|
 fn lex_infix(
   input : StringView,
   offset : Int,
@@ -131,6 +143,7 @@ fn lex_infix(
   }
 }
 
+///|
 fn apply_infix(op : Token, lhs : Int, rhs : Int) -> Int {
   match op {
     Plus => lhs + rhs
@@ -143,11 +156,8 @@ fn apply_infix(op : Token, lhs : Int, rhs : Int) -> Int {
   }
 }
 
-fn parse_prefix(
-  input : StringView,
-  offset : Int,
-  len : Int,
-) -> CalcResult[Int] {
+///|
+fn parse_prefix(input : StringView, offset : Int, len : Int) -> CalcResult[Int] {
   match lex_token(input, offset, len) {
     Ok((tok, next)) =>
       match tok {
@@ -178,6 +188,7 @@ fn parse_prefix(
   }
 }
 
+///|
 fn parse_expr_bp(
   input : StringView,
   offset : Int,
@@ -222,7 +233,8 @@ fn parse_expr_bp(
   }
 }
 
-///| Public calculator parser
+///|
+/// Public calculator parser
 pub fn parse_calc(input : StringView) -> @nom.IResult[StringView, Int] {
   let len = input.length()
   match parse_expr_bp(input, 0, len, 0) {
