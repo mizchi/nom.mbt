@@ -32,7 +32,7 @@ fn with_unicode_ws(expr : StringView) -> String {
       } else {
         sb.write_string(ws_em)
       }
-      toggle = not(toggle)
+      toggle = !(toggle)
     } else {
       sb.write_char(ch)
     }
@@ -84,7 +84,7 @@ fn make_assignments(pairs : Array[(String, Int)]) -> String {
   for pair in pairs {
     let key = pair.0
     let value = pair.1
-    if not(first) {
+    if !(first) {
       sb.write_string(sep_str)
       sb.write_string(ws_ideo)
     }
@@ -184,7 +184,7 @@ fn parse_number(input : StringView, idx : Int, len : Int) -> (Int, Int)? {
   let zero = '0'.to_int()
   match input.get_char(i) {
     Some(c) =>
-      if not(c.is_ascii_digit()) {
+      if !(c.is_ascii_digit()) {
         return None
       }
     None => return None
@@ -337,7 +337,7 @@ fn fullwidth_digit1(input : StringView) -> @nom.IResult[StringView, StringView] 
 fn parse_fullwidth_digits(digits : StringView) -> Result[Int, Unit] {
   let mut acc = 0
   for ch in digits {
-    if not(is_fullwidth_digit(ch)) {
+    if !(is_fullwidth_digit(ch)) {
       return Err(())
     }
     acc = acc * 10 + (ch.to_int() - 0xff10)
@@ -352,8 +352,8 @@ fn number_fullwidth(input : StringView) -> @nom.IResult[StringView, Int] {
 }
 
 fn is_ident_char_unicode(ch : Char) -> Bool {
-  not(ch.is_ascii()) &&
-  not(ch.is_whitespace()) &&
+  !(ch.is_ascii()) &&
+  !(ch.is_whitespace()) &&
   ch != eq_char &&
   ch != sep_char
 }
@@ -767,7 +767,7 @@ fn parse_fullwidth_number_hand(
   }
   match input.get_char(i) {
     Some(c) =>
-      if not(is_fullwidth_digit(c)) {
+      if !(is_fullwidth_digit(c)) {
         return None
       }
     None => return None
@@ -869,7 +869,7 @@ fn parse_number_unicode(input : StringView, idx : Int, len : Int) -> (Int, Int)?
   let zero = '0'.to_int()
   match input.get_char(i) {
     Some(c) =>
-      if not(c.is_ascii_digit()) {
+      if !(c.is_ascii_digit()) {
         return None
       }
     None => return None

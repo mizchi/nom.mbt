@@ -99,7 +99,7 @@ fn join_context(ctx : Array[String]) -> String {
   let sb = StringBuilder::new()
   let mut first = true
   for label in ctx {
-    if not(first) {
+    if !(first) {
       sb.write_string(" > ")
     }
     first = false
